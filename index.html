@@ -2,272 +2,486 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="description" content="ระบบจัดเก็บรายงานผลการปฏิบัติงาน Performance Reporting System โรงเรียนพิมานพิทยาสรรค์">
+<meta name="theme-color" content="#FFFFFF">
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png">
 <title>ระบบจัดเก็บรายงานผลการปฏิบัติงาน (PRS)</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <style>
-:root{
-  --primary:#1E40AF; --primary-dark:#1E3A8A; --gold:#60A5FA;
-  --bg:#F1F5F9; --text:#0F172A; --text-light:#64748B; --border:#CBD5E1; --radius:16px;
+/* ==========================================================
+   DESIGN TOKENS — iOS Style Identity (Solid Colors, Clean UI)
+========================================================== */
+:root {
+  var(--color-pink): #FF1493;
+  --color-blue: #1C86EE;
+  --color-red: #CD0000;
+  --color-gray: #CFCFCF;
+  --color-dark: #1C1C1E;
+  
+  --paper: #F2F2F7; 
+  --paper-card: #FFFFFF;
+  --line: #E5E5EA;
+  --text: #1C1C1E;
+  --text-muted: #8E8E93;
+  --text-faint: #C7C7CC;
+  
+  --danger: var(--color-red);
+  --radius-sm: 12px; 
+  --radius: 20px; 
+  
+  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Sarabun', sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Sarabun', sans-serif;
+  --notice-offset: 0px;
 }
-*{ margin:0; padding:0; box-sizing:border-box; }
-html{ scroll-behavior:smooth; }
-body{ font-family:'Prompt',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
-.d-none{ display:none !important; }
-::-webkit-scrollbar{ height:8px; width:8px; }
-::-webkit-scrollbar-thumb{ background:#CBD5E1; border-radius:20px; }
 
-/* LOADING */
-.loading-screen{ position:fixed; inset:0; background:#fff; z-index:9999; display:flex; justify-content:center; align-items:center; }
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+@media (prefers-reduced-motion: reduce){ html{ scroll-behavior:auto; } *{ animation-duration:.001ms !important; transition-duration:.001ms !important; } }
+
+body { 
+  font-family: var(--font-body); 
+  background: var(--paper); 
+  color: var(--text); 
+  min-height: 100vh; 
+  -webkit-font-smoothing: antialiased; 
+}
+
+.d-none{ display:none !important; }
+a{ color:inherit; text-decoration: none; }
+button{ font-family:inherit; }
+:focus-visible{ outline:2px solid var(--color-blue); outline-offset:2px; border-radius:6px; }
+::-webkit-scrollbar{ height:8px; width:8px; }
+::-webkit-scrollbar-thumb{ background: var(--color-gray); border-radius:20px; }
+
+/* ---------- GLOBAL ANIMATIONS ---------- */
+@keyframes fadeInUp{ from{ opacity:0; transform:translateY(16px); } to{ opacity:1; transform:translateY(0); } }
+@keyframes fadeIn{ from{ opacity:0; } to{ opacity:1; } }
+@keyframes floatSlow{ 0%,100%{ transform:translateY(0); } 50%{ transform:translateY(-6px); } }
+.reveal{ animation:fadeInUp .55s cubic-bezier(.22,1,.36,1) both; }
+.ripple{ position:relative; overflow:hidden; }
+.ripple-dot{ position:absolute; border-radius:50%; transform:scale(0); background:rgba(0,0,0,.1); animation:rippleAnim .6s ease-out forwards; pointer-events:none; }
+@keyframes rippleAnim{ to{ transform:scale(2.6); opacity:0; } }
+
+/* ---------- LOADING ---------- */
+.loading-screen{
+  position:fixed; inset:0; z-index:9999; display:flex; justify-content:center; align-items:center; transition:opacity .4s ease;
+  background: var(--paper);
+}
+.loading-screen.fade-out{ opacity:0; pointer-events:none; }
 .loading-content{ display:flex; flex-direction:column; align-items:center; text-align:center; }
-.loading-logo{ width:80px; height:80px; margin-bottom:18px; object-fit:contain; }
-.loading-title{ font-size:1.1rem; font-weight:700; color:#1e293b; margin-bottom:18px; }
-.loading-bar-container{ width:220px; height:6px; background:#e2e8f0; border-radius:10px; overflow:hidden; }
-.loading-bar-progress{ width:40%; height:100%; background:var(--primary); border-radius:10px; animation:loadingMove 1.4s infinite ease-in-out; }
+.loading-seal{ width:78px; height:78px; margin-bottom:20px; object-fit:contain; border-radius:50%; background:var(--paper-card); padding:10px; box-shadow:0 0 30px rgba(0,0,0,.08); animation:floatSlow 2.4s ease-in-out infinite; }
+.loading-title{ font-family:var(--font-display); font-size:1.05rem; font-weight:600; color:var(--text); margin-bottom:20px; }
+.loading-bar-container{ width:220px; height:5px; background:var(--line); border-radius:10px; overflow:hidden; }
+.loading-bar-progress{ width:40%; height:100%; background:var(--color-blue); border-radius:10px; animation:loadingMove 1.4s infinite ease-in-out; }
 @keyframes loadingMove{ 0%{transform:translateX(-100%);} 100%{transform:translateX(220%);} }
 
-/* HEADER */
+/* ---------- HEADER ---------- */
 .app-header{
-  position:fixed; top:0; left:0; right:0; z-index:1000; height:70px;
-  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
-  display:flex; align-items:center; gap:12px; padding:0 15px;
-  box-shadow:0 4px 15px rgba(0,0,0,.12);
+  position:fixed; top:var(--notice-offset); left:0; right:0; z-index:1000; height:70px;
+  background: rgba(255, 255, 255, 0.85); 
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  display:flex; align-items:center; gap:12px; padding:0 14px;
+  border-bottom: 1px solid var(--line);
+  transition:top .2s ease;
 }
-.logo-box img{ width:42px; height:42px; object-fit:contain; }
-.system-title{ display:none; color:#fff; white-space:nowrap; }
-.system-title h1{ font-size:1.05rem; font-weight:800; margin:0; }
-.system-title p{ font-size:.72rem; color:rgba(255,255,255,.8); margin:0; }
+.logo-box img{ width:38px; height:38px; object-fit:contain; border-radius:50%; flex-shrink:0; }
+.system-title{ display:none; white-space:nowrap; }
+.system-title h1{ font-family:var(--font-display); font-size:1.05rem; font-weight:700; margin:0; color:var(--text); }
+.system-title p{ font-size:.7rem; color:var(--text-muted); margin:0; }
 .search-box{
-  flex:1; height:40px; background:rgba(255,255,255,.15); border:1px solid rgba(255,255,255,.3);
-  border-radius:12px; padding:0 12px; display:flex; align-items:center; gap:8px; color:#fff;
+  flex:1; height:40px; background:rgba(142, 142, 147, 0.12);
+  border-radius:12px; padding:0 12px; display:flex; align-items:center; gap:8px; color:var(--text);
+  transition:background .18s ease, box-shadow .18s ease;
 }
-.search-box input{ background:transparent; border:none; outline:none; color:#fff; width:100%; font-family:'Prompt',sans-serif; font-size:.9rem; }
-.search-box input::placeholder{ color:rgba(255,255,255,.7); }
+.search-box:focus-within{ background:rgba(142, 142, 147, 0.18); box-shadow:0 0 0 2px var(--color-blue); }
+.search-box i{ color:var(--text-muted); font-size:.85rem; }
+.search-box input{ background:transparent; border:none; outline:none; color:var(--text); width:100%; font-family:var(--font-body); font-size:.88rem; }
+.search-box input::placeholder{ color:var(--text-muted); }
 .header-btn{
-  width:40px; height:40px; border:none; border-radius:12px; background:rgba(255,255,255,.15);
-  color:#fff; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:1.05rem;
+  width:40px; height:40px; border:none; border-radius:12px; background:rgba(142, 142, 147, 0.12);
+  color:var(--text); display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:1rem;
+  transition:background .15s ease, transform .15s ease;
 }
-.header-btn.add-btn{ background:#fff; color:var(--primary); }
+.header-btn:hover{ background:rgba(142, 142, 147, 0.2); }
+.header-btn:active{ transform:scale(.94); }
 .user-chip{
-  display:flex; align-items:center; gap:6px; height:40px; padding:0 10px; border-radius:12px;
-  background:rgba(255,255,255,.15); color:#fff; cursor:pointer; flex-shrink:0; max-width:140px;
+  display:flex; align-items:center; gap:6px; height:40px; padding:0 8px 0 4px; border-radius:12px;
+  background:rgba(142, 142, 147, 0.12); color:var(--text); cursor:pointer; flex-shrink:0; max-width:140px;
+  transition:background .15s ease;
 }
-.user-chip img{ width:26px; height:26px; border-radius:50%; object-fit:cover; }
-.user-chip span{ font-size:.8rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.user-chip:hover{ background:rgba(142, 142, 147, 0.18); }
+.user-chip img{ width:28px; height:28px; border-radius:50%; object-fit:cover; }
+.user-chip span{ font-size:.78rem; font-weight: 500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 @media(min-width:992px){
-  .app-header{ height:88px; padding:0 40px; }
-  .logo-box img{ width:52px; height:52px; }
-  .system-title{ display:block; margin-right:16px; }
-  .system-title h1{ font-size:1.2rem; }
-  .search-box{ max-width:600px; height:46px; }
-  .header-btn, .user-chip{ height:46px; }
+  .app-header{ height:80px; padding:0 40px; }
+  .logo-box img{ width:48px; height:48px; }
+  .system-title{ display:block; margin-right:20px; }
+  .system-title h1{ font-size:1.28rem; }
+  .system-title p{ font-size:.76rem; }
+  .search-box{ max-width:560px; height:44px; }
+  .header-btn, .user-chip{ height:44px; }
 }
 
-/* NAV */
-.main-nav{
-  position:fixed; z-index:990; background:#fff; box-shadow:0 2px 10px rgba(0,0,0,.06);
-  bottom:0; left:0; right:0; height:64px; display:flex;
-}
-.main-nav .nav-item{
-  flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center;
-  gap:2px; color:var(--text-light); font-size:.72rem; cursor:pointer; position:relative;
-}
-.main-nav .nav-item i{ font-size:1.15rem; }
-.main-nav .nav-item.active{ color:var(--primary); }
-.mobile-submenu{
-  display:none; position:fixed; left:0; right:0; bottom:64px; background:#fff;
-  border-top:1px solid var(--border); box-shadow:0 -4px 15px rgba(0,0,0,.08); z-index:995;
-  max-height:60vh; overflow-y:auto; padding:8px 0;
-}
-.mobile-submenu.show{ display:block; }
-.mobile-submenu a{
-  display:block; padding:12px 20px; color:var(--text); text-decoration:none; font-size:.9rem;
-  border-bottom:1px solid #f1f5f9;
-}
-.mobile-submenu a:active{ background:#f1f5f9; }
+/* ---------- LAYOUT ---------- */
+.app-container{ padding-top:calc(70px + var(--notice-offset)); padding-bottom:118px; min-height:100vh; }
+@media(min-width:992px){ .app-container{ padding-top:calc(80px + var(--notice-offset) + 30px); padding-bottom:110px; } }
+.content-wrap{ max-width:1300px; margin:auto; padding:14px 16px 0; }
 
-@media(min-width:992px){
-  .main-nav{
-    position:fixed; top:88px; bottom:auto; left:0; right:0; height:52px;
-    flex-direction:row; justify-content:center; gap:6px; padding:0 20px;
-  }
-  .main-nav .nav-item{ flex:none; flex-direction:row; gap:8px; padding:0 20px; font-size:.9rem; }
-  .main-nav .nav-item.dropdown-parent:hover .desktop-dropdown{ display:block; }
-  .desktop-dropdown{
-    display:none; position:absolute; top:100%; left:0; background:#fff; border-radius:10px;
-    box-shadow:0 10px 30px rgba(0,0,0,.12); min-width:260px; padding:8px 0; z-index:996;
-  }
-  .desktop-dropdown a{
-    display:block; padding:10px 18px; color:var(--text); text-decoration:none; font-size:.88rem;
-  }
-  .desktop-dropdown a:hover{ background:#eff6ff; color:var(--primary); }
-}
-
-/* LAYOUT */
-.app-container{ padding-top:78px; padding-bottom:80px; min-height:100vh; }
-@media(min-width:992px){ .app-container{ padding-top:150px; padding-bottom:40px; } }
-.content-wrap{ max-width:1300px; margin:auto; padding:12px 15px; }
-
-/* HOME ROWS (Netflix style) */
-.type-row{ margin-bottom:26px; }
-.row-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
-.row-header h5{ font-size:1rem; font-weight:700; margin:0; }
-.row-header a{ font-size:.82rem; color:var(--primary); text-decoration:none; white-space:nowrap; }
-.scroll-row{ display:flex; gap:12px; overflow-x:auto; padding-bottom:6px; scroll-snap-type:x proximity; }
+/* ---------- HOME ROWS ---------- */
+.type-row{ margin-bottom:30px; }
+.row-header{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; gap:10px; }
+.row-header h5{ font-family:var(--font-display); font-size:1.08rem; font-weight:700; margin:0; color:var(--text); }
+.row-header a{ font-size:.8rem; color:var(--color-blue); font-weight:600; }
+.scroll-row{ display:flex; gap:16px; overflow-x:auto; padding:4px 4px 16px; scroll-snap-type:x proximity; align-items:flex-start; }
 .scroll-row::-webkit-scrollbar{ height:6px; }
 
-.report-card{
-  flex:0 0 200px; scroll-snap-align:start; background:#fff; border-radius:var(--radius);
-  box-shadow:0 2px 10px rgba(0,0,0,.06); cursor:pointer; overflow:hidden; transition:.2s; border:1px solid #eef2f7;
+/* ==========================================================
+   REPORT CARDS
+========================================================== */
+.report-card {
+  --accent: var(--color-blue);
+  flex: 0 0 360px; 
+  max-width: 88vw; 
+  scroll-snap-align: start; 
+  background: var(--paper-card); 
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card); 
+  cursor: pointer; 
+  overflow: hidden; 
+  transition: transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.2s ease, flex-basis 0.3s ease;
+  border: 1px solid var(--line);
+  position: relative;
 }
-.report-card:hover{ transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,.1); }
-.report-card .card-icon{
-  height:70px; background:linear-gradient(135deg,#eff6ff,#dbeafe); display:flex; align-items:center;
-  justify-content:center; font-size:1.6rem; color:var(--primary);
+.report-card:hover, .report-card:focus-visible {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
 }
-.report-card .card-body{ padding:10px 12px; }
-.report-card .card-title{ font-size:.85rem; font-weight:600; line-height:1.3; height:2.6em; overflow:hidden; }
-.report-card .card-sub{ font-size:.72rem; color:var(--text-light); margin-top:4px; }
-.report-card .card-date{ font-size:.7rem; color:var(--text-light); margin-top:2px; }
+.report-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px; z-index: 10; background: var(--accent); }
 
-.empty-state{ text-align:center; padding:60px 20px; color:var(--text-light); }
-.empty-state i{ font-size:2.5rem; margin-bottom:12px; display:block; }
+/* หน้าปก */
+.card-cover {
+  height: 490px; 
+  position: relative; 
+  overflow: hidden; 
+  background: #E5E5EA;
+  transition: height 0.3s ease;
+}
 
-/* GRID (list page) */
-.list-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
-.list-toolbar h4{ font-size:1.05rem; font-weight:700; margin:0; }
-.back-link{ font-size:.85rem; color:var(--primary); text-decoration:none; }
-.report-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr)); gap:14px; }
+.report-card.is-landscape { flex: 0 0 540px; max-width: 92vw; }
+.report-card.is-landscape .card-cover { height: 360px; }
 
-/* MODAL FORM */
+@media (max-width: 768px) {
+  .report-card { flex: 0 0 320px; }
+  .card-cover { height: 440px; }
+  .report-card.is-landscape { flex: 0 0 340px; } 
+  .report-card.is-landscape .card-cover { height: 240px; }
+}
+
+.card-cover .cover-frame { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.card-cover .cover-frame canvas, .card-cover .cover-frame img { width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+.card-cover .cover-placeholder { font-size: 2.8rem; color: var(--text-muted); opacity: 0.35; }
+.card-cover .cover-placeholder.is-loading{ animation:floatSlow 1.6s ease-in-out infinite; }
+
+/* ---------- กล่องชื่อรายงาน (พื้นหลังสีขาว + ขอบสีแดง) ---------- */
+.card-cover .cover-title-overlay {
+  position: absolute; 
+  bottom: 12px; 
+  left: 50%; 
+  transform: translateX(-50%); 
+  z-index: 2; 
+  
+  /* พื้นหลังสีขาว */
+  background: #FFFFFF; 
+  
+  /* เส้นขอบสีแดง */
+  border: 2px solid var(--color-red); 
+  
+  /* ขอบมนแบบแคปซูล 100% */
+  border-radius: 999px; 
+  padding: 6px 18px; 
+  
+  /* ปรับความกว้างให้พอดีกับข้อความ แต่ไม่เกินขอบการ์ด */
+  width: max-content; 
+  max-width: 90%; 
+  
+  text-align: center; 
+  
+  /* สีตัวอักษรเข้ม เพื่อให้อ่านง่ายบนพื้นหลังขาว */
+  color: var(--color-dark); 
+  font-size: 0.85rem; 
+  font-weight: 700; 
+  line-height: 1.4; 
+  
+  display: -webkit-box; 
+  -webkit-line-clamp: 2; 
+  -webkit-box-orient: vertical; 
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.report-card .card-body { padding: 14px 18px 18px; }
+.report-card .card-sub { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.report-card .card-sub::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.report-card .card-date { font-size: 0.75rem; color: var(--text-faint); margin-top: 4px; }
+
+/* ---------- CATEGORY OVERVIEW ---------- */
+.category-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
+.category-tile{
+  border-radius:var(--radius); padding:18px 16px; color:#fff; cursor:pointer; position:relative; overflow:hidden;
+  min-height:104px; display:flex; flex-direction:column; justify-content:space-between;
+  box-shadow:var(--shadow-card); transition:transform .2s cubic-bezier(.25,1,.5,1), box-shadow .2s ease;
+}
+.category-tile:hover{ transform:translateY(-4px) scale(1.02); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12); }
+.category-tile .tile-icon{ font-size:1.3rem; opacity:.9; }
+.category-tile .tile-name{ font-family:var(--font-display); font-weight:700; font-size:.92rem; line-height:1.3; }
+.category-tile .tile-count{ font-size:.72rem; opacity:.85; margin-top:2px; }
+
+.empty-state{ text-align:center; padding:70px 20px; color:var(--text-muted); animation:fadeIn .4s ease; }
+.empty-state i{ font-size:2.6rem; margin-bottom:14px; display:block; color:var(--text-faint); }
+.empty-state h6{ font-family:var(--font-display); font-size:1rem; color:var(--text); margin-bottom:6px; }
+
+/* ---------- GRID (List Page) ---------- */
+.list-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
+.list-toolbar h4{ font-family:var(--font-display); font-size:1.1rem; font-weight:700; margin:0; color:var(--text); }
+.back-link{ font-size:.85rem; color:var(--color-blue); font-weight:600; }
+
+.report-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px; align-items:flex-start; }
+@media (min-width: 820px) { .report-grid .report-card.is-landscape { grid-column: span 2; } }
+
+/* ---------- BUTTONS ---------- */
+.btn{ transition:transform .15s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease; border-radius:12px; font-weight:600; }
+.btn:active{ transform:scale(.97); }
+.btn-primary{ background:var(--color-blue); border:none; box-shadow:0 4px 12px rgba(28,134,238,.3); color: #fff; }
+.btn-primary:hover, .btn-primary:focus{ background:#1874CF; box-shadow:0 6px 16px rgba(28,134,238,.4); transform:translateY(-1px); color: #fff; }
+.btn-outline-secondary{ border-color:var(--line); color:var(--text-muted); }
+.btn-outline-secondary:hover{ background:var(--paper); border-color:var(--text-muted); color:var(--text); }
+.btn-danger{ background:var(--danger); border-color:var(--danger); box-shadow:0 4px 12px rgba(205,0,0,.3); color: #fff; }
+.btn-danger:hover{ background:#A60000; border-color:#A60000; color: #fff; transform:translateY(-1px); }
+.form-control:focus, .form-select:focus{ border-color:var(--color-blue); box-shadow:0 0 0 .2rem rgba(28,134,238,.2); }
+.form-control, .form-select{ border-color:var(--line); border-radius:10px; transition:border-color .15s ease, box-shadow .15s ease; }
+
+/* ---------- MODALS ---------- */
 .gsi-wrap{ display:flex; justify-content:center; padding:10px 0; }
-.form-label{ font-weight:600; font-size:.85rem; }
-.is-invalid{ border-color:#dc2626 !important; }
+.form-label{ font-weight:600; font-size:.85rem; color:var(--text); }
+.is-invalid{ border-color:var(--danger) !important; animation:shakeInvalid .35s ease; }
+@keyframes shakeInvalid{ 0%,100%{ transform:translateX(0); } 25%{ transform:translateX(-4px); } 75%{ transform:translateX(4px); } }
+.modal-content{ border-radius:24px; border:none; box-shadow: 0 24px 48px rgba(0,0,0,.15); }
+.modal-title{ font-family:var(--font-display); font-weight:700; color:var(--text); }
 
-/* LINE notice */
-.line-notice{ display:none; position:fixed; top:0; left:0; right:0; background:#fef3c7; color:#92400e; padding:10px 15px; z-index:1100; font-size:.82rem; text-align:center; }
-.line-notice a{ color:#1E40AF; font-weight:600; }
+/* ---------- LINE notice ---------- */
+.line-notice{
+  display:none; position:fixed; top:0; left:0; right:0; background:linear-gradient(90deg,#FFE9E9,#FFF3D6); color:#8A2400; padding:8px 15px;
+  z-index:1100; font-size:.8rem; text-align:center; min-height:38px; align-items:center; justify-content:center; gap:8px;
+  border-bottom:1px solid var(--danger);
+}
+.line-notice.show{ display:flex; animation:fadeIn .3s ease; }
+.line-notice a{ color:var(--text); font-weight:700; text-decoration:underline; cursor:pointer; }
+
+/* ---------- DOCK NAVIGATION ---------- */
+.dock-wrap{
+  position:fixed; left:0; right:0; bottom:0; z-index:1000;
+  display:flex; justify-content:center;
+  padding:10px 10px calc(10px + env(safe-area-inset-bottom));
+  pointer-events:none;
+}
+.dock{
+  pointer-events: auto; display: flex; align-items: flex-end; gap: 8px;
+  background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px) saturate(180%); 
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 28px; padding: 10px 12px; 
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); max-width:100%; overflow-x:auto;
+}
+.dock::-webkit-scrollbar{ display:none; }
+.dock-item{
+  position: relative; width: 50px; height: 50px; border-radius: 14px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; 
+  color: var(--text-muted); background: transparent; border: none; cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+  transform-origin: bottom center;
+}
+.dock-item i{ font-size:1.15rem; }
+.dock-item .dock-label{ display:none; }
+.dock-item:hover{ background: rgba(0, 0, 0, 0.05); color: var(--text); }
+.dock-item.active{ background: rgba(0, 0, 0, 0.08); color: var(--color-blue); }
+.dock-divider{ width:1px; align-self:stretch; margin:6px 4px; background:var(--line); flex-shrink:0; }
+
+@media(min-width:992px){
+  .dock-item{ width:58px; height:58px; }
+  .dock-item i{ font-size:1.3rem; }
+}
+
+/* Flyout panel */
+.dock-flyout{
+  position:fixed; bottom:90px; left:50%; translate:-50% 0; z-index:1001;
+  background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15); 
+  padding: 12px; width: min(92vw, 320px); max-height: 52vh; overflow-y: auto; display:none;
+}
+.dock-flyout.show{ display:block; animation:flyoutIn .16s ease; }
+@keyframes flyoutIn{ from{ opacity:0; transform:translate(-50%,8px); } to{ opacity:1; transform:translate(-50%,0); } }
+.dock-flyout .flyout-title{ font-family:var(--font-display); font-size:.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; padding:4px 8px 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.dock-flyout .flyout-title .flyout-all{ text-transform:none; letter-spacing:0; font-size:.74rem; color:var(--color-blue); font-weight:700; cursor:pointer; }
+.dock-flyout a{ display:flex; align-items:center; gap:9px; padding:10px 12px; color:var(--text); text-decoration:none; font-size:.88rem; border-radius:12px; font-weight: 500; }
+.dock-flyout a::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--item-color,var(--color-blue)); flex-shrink:0; }
+.dock-flyout a:hover{ background: rgba(0, 0, 0, 0.05); }
+@media(min-width:992px){ .dock-flyout{ bottom:100px; } }
+
+/* ---------- FAB MENU ---------- */
+.fab-wrap{ position:fixed; right:18px; bottom:calc(96px + env(safe-area-inset-bottom)); z-index:1050; }
+.fab-btn{
+  width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
+  background: var(--color-blue); color:#fff; font-size:1.3rem; box-shadow:0 10px 24px rgba(28,134,238,.4);
+  display:flex; align-items:center; justify-content:center;
+  transition:transform .28s cubic-bezier(.34,1.56,.64,1), background .2s ease;
+}
+.fab-wrap.open .fab-btn{ transform:rotate(135deg); background: var(--text-muted); }
+.fab-radial{ position:absolute; right:0; bottom:0; width:0; height:0; }
+.fab-item{
+  position:absolute; right:6px; bottom:6px; width:46px; height:46px; border-radius:50%; border:none;
+  background:var(--paper-card); color:var(--text); box-shadow:var(--shadow-card); display:flex; align-items:center; justify-content:center;
+  font-size:1.02rem; opacity:0; transform:scale(.3); pointer-events:none; cursor:pointer;
+  transition:transform .3s cubic-bezier(.34,1.56,.64,1), opacity .2s ease, right .3s cubic-bezier(.34,1.56,.64,1), bottom .3s cubic-bezier(.34,1.56,.64,1);
+  border:1px solid var(--line);
+}
+.fab-item .fab-tip{
+  position:absolute; right:54px; top:50%; translate:0 -50%; background:rgba(28,28,30,.8); backdrop-filter:blur(10px); color:#fff; font-size:.72rem;
+  padding:4px 9px; border-radius:8px; white-space:nowrap; opacity:0; pointer-events:none; transition:opacity .15s ease;
+}
+.fab-item:hover .fab-tip{ opacity:1; }
+.fab-wrap.open .fab-item{ opacity:1; pointer-events:auto; transform:scale(1); }
+.fab-wrap.open .fab-item[data-i="0"]{ right:6px;  bottom:70px; }
+.fab-wrap.open .fab-item[data-i="1"]{ right:46px; bottom:118px; }
+.fab-wrap.open .fab-item[data-i="2"]{ right:104px; bottom:150px; }
+.fab-wrap.open .fab-item[data-i="3"]{ right:170px; bottom:162px; }
+.fab-scrim{ position:fixed; inset:0; z-index:1040; background:rgba(0,0,0,.2); backdrop-filter:blur(2px); display:none; }
+.fab-wrap.open ~ .fab-scrim, .fab-scrim.show{ display:block; animation:fadeIn .2s ease; }
+@media(min-width:992px){ .fab-wrap{ right:34px; bottom:38px; } }
 </style>
 </head>
 <body onload="checkLineBrowser()">
 
+<div id="fab-scrim" class="fab-scrim" onclick="closeFab()"></div>
+
 <div id="line-notice" class="line-notice">
-  ⚠️ กำลังเปิดผ่านแอป LINE ซึ่งอาจใช้งานบางฟังก์ชันไม่ได้เต็มรูปแบบ
+  <span>⚠️ กำลังเปิดผ่านแอป LINE ซึ่งอาจใช้งานบางฟังก์ชันไม่ได้เต็มรูปแบบ</span>
   <a href="javascript:void(0)" onclick="openInBrowser()">เปิดในเบราว์เซอร์</a>
-  <a href="javascript:void(0)" onclick="hideNoticePermanently()" style="margin-left:10px;">ปิด</a>
+  <a href="javascript:void(0)" onclick="hideNoticePermanently()">ปิด</a>
 </div>
 
-<!-- LOADING SCREEN -->
 <div id="loadingScreen" class="loading-screen">
   <div class="loading-content">
-    <img class="loading-logo" src="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png" alt="logo">
+    <img class="loading-seal" src="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png" alt="ตราโรงเรียน">
     <div class="loading-title">ระบบจัดเก็บรายงานผลการปฏิบัติงาน</div>
     <div class="loading-bar-container"><div class="loading-bar-progress"></div></div>
   </div>
 </div>
 
-<!-- HEADER -->
 <header class="app-header">
-  <div class="logo-box"><img src="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png" alt="logo"></div>
+  <div class="logo-box"><img src="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png" alt="ตราโรงเรียนพิมานพิทยาสรรค์"></div>
   <div class="system-title">
     <h1>ระบบจัดเก็บรายงานผลการปฏิบัติงาน</h1>
     <p>โรงเรียนพิมานพิทยาสรรค์</p>
   </div>
   <div class="search-box">
-    <i class="fa-solid fa-magnifying-glass"></i>
-    <input id="searchInput" type="text" placeholder="ค้นหาชื่อรายงาน / ชื่อผู้บันทึก..." onkeyup="onSearchKeyup(event)">
+    <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+    <input id="searchInput" type="text" placeholder="ค้นหาชื่อรายงาน / ชื่อผู้บันทึก..." aria-label="ค้นหารายงาน" onkeyup="onSearchKeyup(event)">
   </div>
-  <button id="addBtn" class="header-btn add-btn d-none" onclick="openUploadForm()" title="เพิ่มรายงาน">
-    <i class="fa-solid fa-plus"></i>
+  <button id="loginBtn" class="header-btn" onclick="openLoginModal()" title="เข้าสู่ระบบ" aria-label="เข้าสู่ระบบ">
+    <i class="fa-brands fa-google" aria-hidden="true"></i>
   </button>
-  <button id="loginBtn" class="header-btn" onclick="openLoginModal()" title="เข้าสู่ระบบ">
-    <i class="fa-brands fa-google"></i>
-  </button>
-  <div id="userChip" class="user-chip d-none" onclick="openUserMenu()">
+  <div id="userChip" class="user-chip d-none" onclick="openUserMenu()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openUserMenu()" aria-label="เมนูผู้ใช้">
     <img id="userAvatar" src="" alt="">
     <span id="userNameLabel"></span>
   </div>
 </header>
 
-<!-- NAV -->
-<nav class="main-nav">
-  <div class="nav-item active" id="navHome" onclick="goHome()">
-    <i class="fa-solid fa-house"></i><span>หน้าแรก</span>
-  </div>
-
-  <div class="nav-item dropdown-parent" id="navSubject" onclick="onNavTap('subjectMenu', 'subject')">
-    <i class="fa-solid fa-book"></i><span>กลุ่มสาระการเรียนรู้</span>
-    <div class="desktop-dropdown" id="subjectDesktopDropdown"></div>
-  </div>
-
-  <div class="nav-item dropdown-parent" id="navType" onclick="onNavTap('typeMenu', 'type')">
-    <i class="fa-solid fa-layer-group"></i><span>ประเภทรายงาน</span>
-    <div class="desktop-dropdown" id="typeDesktopDropdown"></div>
-  </div>
-</nav>
-
-<div id="subjectMenu" class="mobile-submenu"></div>
-<div id="typeMenu" class="mobile-submenu"></div>
-
-<!-- APP CONTENT -->
 <div class="app-container">
   <div class="content-wrap" id="mainView"></div>
 </div>
 
-<!-- REPORT FORM MODAL -->
+<div class="dock-wrap">
+  <nav class="dock" id="dock" aria-label="เมนูหลัก">
+    <button class="dock-item active" id="navHome" onclick="goHome()" aria-label="หน้าแรก" title="หน้าแรก">
+      <i class="fa-solid fa-house" aria-hidden="true"></i>
+    </button>
+    <div class="dock-divider"></div>
+    <button class="dock-item" id="navSubject" onclick="onDockGroupTap('subjectFlyout','navSubject','subject')" aria-label="กลุ่มสาระการเรียนรู้ (เลื่อนเมาส์ดูตัวเลือก คลิกดูทั้งหมด)" title="กลุ่มสาระการเรียนรู้">
+      <i class="fa-solid fa-book" aria-hidden="true"></i>
+    </button>
+    <button class="dock-item" id="navType" onclick="onDockGroupTap('typeFlyout','navType','type')" aria-label="ประเภทรายงาน (เลื่อนเมาส์ดูตัวเลือก คลิกดูทั้งหมด)" title="ประเภทรายงาน">
+      <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+    </button>
+    <div class="dock-divider"></div>
+    <button class="dock-item" id="navAccount" onclick="onDockAccountTap()" aria-label="บัญชีผู้ใช้" title="บัญชี">
+      <i class="fa-solid fa-user" aria-hidden="true"></i>
+    </button>
+  </nav>
+</div>
+<div id="subjectFlyout" class="dock-flyout"></div>
+<div id="typeFlyout" class="dock-flyout"></div>
+
+<div class="fab-wrap" id="fabWrap">
+  <div class="fab-radial">
+    <button class="fab-item" data-i="0" onclick="fabAction('add')" aria-label="เพิ่มรายงาน"><i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i><span class="fab-tip">เพิ่มรายงาน</span></button>
+    <button class="fab-item" data-i="1" onclick="fabAction('search')" aria-label="ค้นหา"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><span class="fab-tip">ค้นหา</span></button>
+    <button class="fab-item" data-i="2" onclick="fabAction('home')" aria-label="หน้าแรก"><i class="fa-solid fa-house" aria-hidden="true"></i><span class="fab-tip">หน้าแรก</span></button>
+    <button class="fab-item" data-i="3" onclick="fabAction('top')" aria-label="เลื่อนขึ้นบนสุด"><i class="fa-solid fa-arrow-up" aria-hidden="true"></i><span class="fab-tip">ขึ้นบนสุด</span></button>
+  </div>
+  <button class="fab-btn" id="fabBtn" onclick="toggleFab()" aria-label="เมนูด่วน" aria-expanded="false"><i class="fa-solid fa-plus" aria-hidden="true"></i></button>
+</div>
+
 <div class="modal fade" id="reportFormModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-    <div class="modal-content" style="border-radius:18px;">
+    <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="reportFormTitle">เพิ่มรายงานผลการปฏิบัติงาน</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
       </div>
       <div class="modal-body">
         <form id="reportForm" onsubmit="return false;">
           <input type="hidden" id="reportEditId" value="">
-
           <div class="mb-3">
-            <label class="form-label">ชื่อ-สกุล ผู้บันทึก</label>
+            <label class="form-label" for="reportFullName">ชื่อ-สกุล ผู้บันทึก</label>
             <input type="text" class="form-control" id="reportFullName" placeholder="เช่น นายสมชาย ใจดี">
           </div>
-
           <div class="mb-3">
-            <label class="form-label">ชื่อรายงาน</label>
+            <label class="form-label" for="reportTitle">ชื่อรายงาน</label>
             <input type="text" class="form-control" id="reportTitle" placeholder="ระบุชื่อรายงาน">
           </div>
-
           <div class="row">
             <div class="col-6 mb-3">
-              <label class="form-label">ปีการศึกษา</label>
+              <label class="form-label" for="reportYear">ปีการศึกษา</label>
               <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="form-control" id="reportYear" placeholder="เช่น 2568" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
             </div>
             <div class="col-6 mb-3">
-              <label class="form-label">วันที่ปฏิบัติงาน</label>
+              <label class="form-label" for="reportDate">วันที่ปฏิบัติงาน</label>
               <input type="date" class="form-control" id="reportDate">
             </div>
           </div>
-
           <div class="mb-3">
-            <label class="form-label">กลุ่มสาระการเรียนรู้</label>
+            <label class="form-label" for="reportSubject">กลุ่มสาระการเรียนรู้</label>
             <select class="form-select" id="reportSubject"></select>
           </div>
-
           <div class="mb-3">
-            <label class="form-label">ประเภทรายงาน</label>
+            <label class="form-label" for="reportType">ประเภทรายงาน</label>
             <select class="form-select" id="reportType"></select>
           </div>
-
           <div class="mb-2">
-            <label class="form-label">ไฟล์รายงาน (PDF เท่านั้น ไม่เกิน 50MB)</label>
+            <label class="form-label" for="reportFile">ไฟล์รายงาน (PDF เท่านั้น ไม่เกิน 50MB)</label>
             <input type="file" class="form-control" id="reportFile" accept="application/pdf" onchange="previewPDFName()">
             <div id="pdfPreview" class="mt-2 small text-secondary"></div>
           </div>
@@ -281,13 +495,12 @@ body{ font-family:'Prompt',sans-serif; background:var(--bg); color:var(--text); 
   </div>
 </div>
 
-<!-- DETAIL MODAL -->
 <div class="modal fade" id="detailModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius:18px;">
+    <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">รายละเอียดรายงาน</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
       </div>
       <div class="modal-body" id="detailBody"></div>
       <div class="modal-footer" id="detailFooter"></div>
@@ -295,19 +508,18 @@ body{ font-family:'Prompt',sans-serif; background:var(--bg); color:var(--text); 
   </div>
 </div>
 
-<!-- ADMIN MANAGEMENT MODAL (super only) -->
 <div class="modal fade" id="adminModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content" style="border-radius:18px;">
+    <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title">จัดการแอดมินใหญ่</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
       </div>
       <div class="modal-body">
         <div class="input-group mb-3">
           <input type="email" class="form-control" id="newAdminEmail" placeholder="อีเมล @phiman.ac.th">
           <input type="text" class="form-control" id="newAdminName" placeholder="ชื่อที่แสดงผล">
-          <button class="btn btn-primary" onclick="addAdmin()"><i class="fa-solid fa-plus"></i></button>
+          <button class="btn btn-primary" onclick="addAdmin()" aria-label="เพิ่มแอดมิน"><i class="fa-solid fa-plus"></i></button>
         </div>
         <div id="adminList" class="list-group"></div>
       </div>
@@ -318,21 +530,15 @@ body{ font-family:'Prompt',sans-serif; background:var(--bg); color:var(--text); 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 /* ==========================================================
-   ⚠️ ตั้งค่า 2 ค่านี้ให้ตรงกับของจริงก่อนใช้งาน (ดู README_การติดตั้ง.md)
+   ⚠️ ตั้งค่าให้ตรงกับของจริงก่อนใช้งาน
 ========================================================== */
 const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzybcfUdipmaq-8t7DwwXJTiqh9sBP8auDP9PoB0sXNOYixzTfsE8hfCy568lu43a-o/exec";
 const GOOGLE_CLIENT_ID = "857339235853-gbd7aip7ktrl2ot025q6judnvvdmfoa9.apps.googleusercontent.com";
 const ALLOWED_DOMAIN = "phiman.ac.th";
 
 const REPORT_TYPES = [
-  "การไปราชการ",
-  "ผลการปฏิบัติงานเพื่อเลื่อนเงินเดือน",
-  "ผลการพิจารณางานตามข้อตกลง (PA)",
-  "งานตามมาตรฐานตำแหน่ง",
-  "งานตามนโยบาย/การสั่งการ",
-  "งานตามพื้นที่",
-  "การพัฒนาอย่างเข้ม (ครูผู้ช่วย)",
-  "งานอื่น ๆ"
+  "การไปราชการ", "ผลการปฏิบัติงานเพื่อเลื่อนเงินเดือน", "ผลการพิจารณางานตามข้อตกลง (PA)",
+  "งานตามมาตรฐานตำแหน่ง", "งานตามนโยบาย/การสั่งการ", "งานตามพื้นที่", "การพัฒนาอย่างเข้ม (ครูผู้ช่วย)", "งานอื่น ๆ"
 ];
 
 const SUBJECT_GROUPS = [
@@ -340,9 +546,38 @@ const SUBJECT_GROUPS = [
   "ภาษาต่างประเทศ","สุขศึกษาและพลศึกษา","ศิลปะ","การงานอาชีพ","กิจกรรมพัฒนาผู้เรียน"
 ];
 
+/* ==========================================================
+   GROUP COLOR IDENTITY
+========================================================== */
+// สีสำหรับกลุ่มสาระการเรียนรู้ (โทนกรมท่า/น้ำเงิน 9 ระดับ ตามที่คุณระบุ)
+const SUBJECT_COLORS = [
+  "#c5cae9", "#9fa8da", "#7986cb", "#5c6bc0", "#3f51b5",
+  "#3949ab", "#303f9f", "#283593", "#1a237e"
+];
+
+// สีสำหรับประเภทงาน (โทนสีม่วง 8 ระดับ)
+const TYPE_COLORS = [
+  "#b39ddb", "#9575cd", "#7e57c2", "#673ab7", 
+  "#5e35b1", "#512da8", "#4527a0", "#311b92"
+];
+
+const TYPE_COLOR_MAP = Object.fromEntries(REPORT_TYPES.map((t, i) => [t, TYPE_COLORS[i % TYPE_COLORS.length]]));
+const SUBJECT_COLOR_MAP = Object.fromEntries(SUBJECT_GROUPS.map((s, i) => [s, SUBJECT_COLORS[i % SUBJECT_COLORS.length]]));
+
+// ดึงสีตามประเภทรายงาน (สำหรับแถบเส้นของการ์ด)
+function groupColor(r) { return TYPE_COLOR_MAP[r["ประเภทรายงาน"]] || TYPE_COLOR_MAP[REPORT_TYPES[0]]; }
+// ดึงสีตามกลุ่มสาระการเรียนรู้ (สำหรับส่วนอื่น ๆ ถ้าต้องการใช้)
+function subjectColor(r) { return SUBJECT_COLOR_MAP[r["กลุ่มสาระการเรียนรู้"]] || SUBJECT_COLOR_MAP[SUBJECT_GROUPS[0]]; }
+
 let allReports = [];
-let userSession = null; // { token, email, name, picture, role }
+let userSession = null; 
 let currentView = { type: "home" };
+let lastLoadFailed = false;
+
+function escapeHtml(v) {
+  return String(v ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function escAttr(s){ return String(s ?? "").replace(/\\/g, "\\\\").replace(/'/g, "\\'").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 
 /* ==========================================================
    INIT
@@ -355,605 +590,328 @@ async function init() {
   updateAuthUI();
   await loadReports();
   renderHome();
-  setTimeout(() => document.getElementById("loadingScreen").style.display = "none", 300);
+  const loadingEl = document.getElementById("loadingScreen");
+  setTimeout(() => { loadingEl.classList.add("fade-out"); setTimeout(() => loadingEl.style.display = "none", 400); }, 300);
+  setupGoogleSignInWhenReady();
+  setupDockMagnify();
+  setupDockHoverPreview();
+}
 
-  if (window.google && google.accounts) initGoogleSignIn();
-  else window.addEventListener("load", () => { if (window.google) initGoogleSignIn(); });
+function setupGoogleSignInWhenReady() {
+  if (window.google && google.accounts) { initGoogleSignIn(); return; }
+  let tries = 0;
+  const timer = setInterval(() => {
+    tries++;
+    if (window.google && google.accounts) { clearInterval(timer); initGoogleSignIn(); } 
+    else if (tries > 40) { clearInterval(timer); console.warn("Google Sign-in load failed."); }
+  }, 500);
 }
 
 function buildDropdowns() {
-  // select ในฟอร์ม
-  const subjSel = document.getElementById("reportSubject");
-  const typeSel = document.getElementById("reportType");
-  subjSel.innerHTML = '<option value="">-- เลือกกลุ่มสาระการเรียนรู้ --</option>' +
-    SUBJECT_GROUPS.map(s => `<option value="${s}">${s}</option>`).join("");
-  typeSel.innerHTML = '<option value="">-- เลือกประเภทรายงาน --</option>' +
-    REPORT_TYPES.map(t => `<option value="${t}">${t}</option>`).join("");
-
-  // desktop hover dropdown
-  document.getElementById("subjectDesktopDropdown").innerHTML =
-    SUBJECT_GROUPS.map(s => `<a href="javascript:void(0)" onclick="showListPage('subject','${escAttr(s)}')">${s}</a>`).join("");
-  document.getElementById("typeDesktopDropdown").innerHTML =
-    REPORT_TYPES.map(t => `<a href="javascript:void(0)" onclick="showListPage('type','${escAttr(t)}')">${t}</a>`).join("");
-
-  // mobile submenu
-  document.getElementById("subjectMenu").innerHTML =
-    SUBJECT_GROUPS.map(s => `<a href="javascript:void(0)" onclick="showListPage('subject','${escAttr(s)}')">${s}</a>`).join("");
-  document.getElementById("typeMenu").innerHTML =
-    REPORT_TYPES.map(t => `<a href="javascript:void(0)" onclick="showListPage('type','${escAttr(t)}')">${t}</a>`).join("");
+  document.getElementById("reportSubject").innerHTML = '<option value="">-- เลือกกลุ่มสาระ --</option>' + SUBJECT_GROUPS.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
+  document.getElementById("reportType").innerHTML = '<option value="">-- เลือกประเภทรายงาน --</option>' + REPORT_TYPES.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+  document.getElementById("subjectFlyout").innerHTML = `<div class="flyout-title"><span>กลุ่มสาระการเรียนรู้</span><span class="flyout-all" onclick="showCategoryOverview('subject')">ดูทั้งหมด</span></div>` + SUBJECT_GROUPS.map(s => `<a href="javascript:void(0)" style="--item-color:${SUBJECT_COLOR_MAP[s]}" onclick="showListPage('subject','${escAttr(s)}')">${escapeHtml(s)}</a>`).join("");
+  document.getElementById("typeFlyout").innerHTML = `<div class="flyout-title"><span>ประเภทรายงาน</span><span class="flyout-all" onclick="showCategoryOverview('type')">ดูทั้งหมด</span></div>` + REPORT_TYPES.map(t => `<a href="javascript:void(0)" style="--item-color:${TYPE_COLOR_MAP[t]}" onclick="showListPage('type','${escAttr(t)}')">${escapeHtml(t)}</a>`).join("");
 }
 
-function escAttr(s){ return s.replace(/'/g,"\\'"); }
+function closeAllFlyouts() { document.getElementById("subjectFlyout")?.classList.remove("show"); document.getElementById("typeFlyout")?.classList.remove("show"); }
+function openFlyout(flyoutId, dockItemId) { const otherId = flyoutId === "subjectFlyout" ? "typeFlyout" : "subjectFlyout"; document.getElementById(otherId).classList.remove("show"); document.getElementById(flyoutId).classList.add("show"); setActiveNav(dockItemId); }
+function onDockGroupTap(flyoutId, dockItemId, kind) { closeAllFlyouts(); closeFab(); setActiveNav(dockItemId); showCategoryOverview(kind); }
+document.addEventListener("click", (e) => { if (!e.target.closest(".dock-flyout") && !e.target.closest("#navSubject, #navType")) closeAllFlyouts(); });
+function onDockAccountTap() { if (userSession) openUserMenu(); else openLoginModal(); }
 
-function onNavTap(menuId, viewKey) {
-  // มือถือ: แตะเพื่อเปิด/ปิดเมนูย่อย (เดสก์ท็อปใช้ hover จาก CSS อยู่แล้ว)
-  if (window.innerWidth >= 992) return;
-  const menu = document.getElementById(menuId);
-  const otherMenu = document.getElementById(menuId === "subjectMenu" ? "typeMenu" : "subjectMenu");
-  otherMenu.classList.remove("show");
-  menu.classList.toggle("show");
+function setupDockMagnify() {
+  const dock = document.getElementById("dock");
+  if (!window.matchMedia("(pointer:fine)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  dock.addEventListener("mousemove", (e) => {
+    dock.querySelectorAll(".dock-item").forEach(item => {
+      const rect = item.getBoundingClientRect(); const center = rect.left + rect.width / 2;
+      const dist = Math.abs(e.clientX - center); item.style.transform = `scale(${Math.max(1, 1.35 - dist / 220).toFixed(2)})`;
+    });
+  });
+  dock.addEventListener("mouseleave", () => dock.querySelectorAll(".dock-item").forEach(item => item.style.transform = ""));
 }
 
-/* ==========================================================
-   DATA LOADING
-========================================================== */
-async function loadReports() {
-  try {
-    const res = await fetch(GAS_WEB_APP_URL);
-    const data = await res.json();
-    allReports = data.reports || [];
-  } catch (err) {
-    console.error(err);
-    allReports = [];
-  }
-}
-
-function sortByDateDesc(list) {
-  return [...list].sort((a, b) => {
-    const da = new Date(a["วันที่บันทึก"] || a["วันที่ปฏิบัติงาน"] || 0);
-    const db = new Date(b["วันที่บันทึก"] || b["วันที่ปฏิบัติงาน"] || 0);
-    return db - da;
+function setupDockHoverPreview() {
+  if (!window.matchMedia("(pointer:fine)").matches) return;
+  let closeTimer = null;
+  [{ btnId: "navSubject", flyoutId: "subjectFlyout" }, { btnId: "navType", flyoutId: "typeFlyout" }].forEach(({ btnId, flyoutId }) => {
+    const btn = document.getElementById(btnId), flyout = document.getElementById(flyoutId);
+    const showIt = () => { clearTimeout(closeTimer); openFlyout(flyoutId, btnId); };
+    const scheduleHide = () => { clearTimeout(closeTimer); closeTimer = setTimeout(closeAllFlyouts, 220); };
+    btn.addEventListener("mouseenter", showIt); btn.addEventListener("mouseleave", scheduleHide);
+    flyout.addEventListener("mouseenter", () => clearTimeout(closeTimer)); flyout.addEventListener("mouseleave", scheduleHide);
   });
 }
 
-function formatThaiDate(v) {
-  if (!v) return "-";
-  const d = new Date(v);
-  if (isNaN(d)) return v;
-  return d.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" });
+function showCategoryOverview(kind) {
+  currentView = { type: "category", kind };
+  const isType = kind === "type"; const list = isType ? REPORT_TYPES : SUBJECT_GROUPS;
+  const colorMap = isType ? TYPE_COLOR_MAP : SUBJECT_COLOR_MAP; const label = isType ? "ประเภทรายงาน" : "กลุ่มสาระการเรียนรู้";
+  const icon = isType ? "fa-layer-group" : "fa-book";
+  document.getElementById("mainView").innerHTML = `
+    <div class="list-toolbar reveal"><h4>${escapeHtml(label)}ทั้งหมด</h4><a class="back-link" href="javascript:void(0)" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> กลับหน้าแรก</a></div>
+    <div class="category-grid">${list.map(name => `<div class="category-tile reveal" style="background:${colorMap[name]}" onclick="showListPage('${isType ? "type" : "subject"}','${escAttr(name)}')"><i class="fa-solid ${icon} tile-icon"></i><div><div class="tile-name">${escapeHtml(name)}</div><div class="tile-count">${allReports.filter(r => r[label] === name).length} รายการ</div></div></div>`).join("")}</div>`;
 }
 
-/* ==========================================================
-   VIEWS: HOME (Netflix-style rows) / LIST / SEARCH
-========================================================== */
-function goHome() {
-  currentView = { type: "home" };
-  setActiveNav("navHome");
-  renderHome();
+function toggleFab() {
+  const wrap = document.getElementById("fabWrap"), opening = !wrap.classList.contains("open");
+  wrap.classList.toggle("open", opening); document.getElementById("fabBtn").setAttribute("aria-expanded", String(opening));
+  document.getElementById("fab-scrim").classList.toggle("show", opening); closeAllFlyouts();
+}
+function closeFab() { document.getElementById("fabWrap").classList.remove("open"); document.getElementById("fabBtn").setAttribute("aria-expanded", "false"); document.getElementById("fab-scrim").classList.remove("show"); }
+function fabAction(action) {
+  closeFab();
+  if (action === "add") openUploadForm(); else if (action === "home") goHome(); else if (action === "top") window.scrollTo({ top: 0, behavior: "smooth" });
+  else if (action === "search") { if (window.innerWidth < 992) window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => document.getElementById("searchInput").focus(), 250); }
+}
+
+async function loadReports() {
+  try {
+    const res = await fetch(GAS_WEB_APP_URL); if (!res.ok) throw new Error("Server Error");
+    allReports = (await res.json()).reports || []; lastLoadFailed = false;
+  } catch (err) { allReports = []; lastLoadFailed = true; }
+}
+
+function sortByDateDesc(list) {
+  return [...list].sort((a, b) => new Date(b["วันที่บันทึก"] || b["วันที่ปฏิบัติงาน"] || 0) - new Date(a["วันที่บันทึก"] || a["วันที่ปฏิบัติงาน"] || 0));
+}
+function formatThaiDate(v) {
+  if (!v) return "-"; const d = new Date(v); return isNaN(d) ? escapeHtml(v) : d.toLocaleDateString("th-TH", { year: "numeric", month: "short", day: "numeric" });
+}
+
+function goHome() { currentView = { type: "home" }; setActiveNav("navHome"); renderHome(); }
+async function retryLoad() {
+  document.getElementById("mainView").innerHTML = `<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><h6>กำลังลองโหลดใหม่...</h6></div>`;
+  await loadReports();
+  if (currentView.type === "home") renderHome(); else if (currentView.type === "list") showListPage(currentView.filterKey, currentView.filterValue); else if (currentView.type === "category") showCategoryOverview(currentView.kind);
 }
 
 function renderHome() {
   const el = document.getElementById("mainView");
-  if (allReports.length === 0) {
-    el.innerHTML = emptyStateHtml("ยังไม่มีรายงานในระบบ");
+  if (lastLoadFailed) {
+    el.innerHTML = `<div class="empty-state"><i class="fa-solid fa-plug-circle-exclamation"></i><h6>เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ</h6><button class="btn btn-outline-secondary btn-retry" onclick="retryLoad()"><i class="fa-solid fa-rotate-right"></i> ลองใหม่</button></div>`;
     return;
   }
-
+  if (allReports.length === 0) { el.innerHTML = emptyStateHtml("ยังไม่มีรายงานในระบบ"); return; }
   let html = "";
   REPORT_TYPES.forEach(type => {
     const items = sortByDateDesc(allReports.filter(r => r["ประเภทรายงาน"] === type)).slice(0, 5);
     if (items.length === 0) return;
-    html += `
-      <div class="type-row">
-        <div class="row-header">
-          <h5>${type}</h5>
-          <a href="javascript:void(0)" onclick="showListPage('type','${escAttr(type)}')">ดูทั้งหมด <i class="fa-solid fa-chevron-right"></i></a>
-        </div>
-        <div class="scroll-row">${items.map(reportCardHtml).join("")}</div>
-      </div>`;
+    html += `<div class="type-row reveal"><div class="row-header"><h5>${escapeHtml(type)}</h5><a href="javascript:void(0)" onclick="showListPage('type','${escAttr(type)}')">ดูทั้งหมด <i class="fa-solid fa-chevron-right"></i></a></div><div class="scroll-row">${items.map(reportCardHtml).join("")}</div></div>`;
   });
-
   el.innerHTML = html || emptyStateHtml("ยังไม่มีรายงานในระบบ");
+  observeCovers();
 }
 
-function reportCardHtml(r) {
-  const id = r["รหัส"];
+function reportCardHtml(r, idx) {
+  const id = r["รหัส"], delay = Math.min(idx || 0, 10) * 0.05, title = r["ชื่อรายงาน"] || "-", fileUrl = r["ลิงก์ไฟล์รายงาน"] || "";
   return `
-    <div class="report-card" onclick="openDetail('${id}')">
-      <div class="card-icon"><i class="fa-solid fa-file-pdf"></i></div>
+    <div class="report-card reveal" style="animation-delay:${delay}s; --accent:${groupColor(r)};" onclick="openDetail('${escAttr(id)}')" data-report-id="${escAttr(id)}" data-file-url="${escAttr(fileUrl)}">
+      <div class="card-cover">
+        <div class="cover-frame"><i class="fa-solid fa-file-pdf cover-placeholder is-loading"></i></div>
+        <div class="cover-title-overlay">${escapeHtml(title)}</div>
+      </div>
       <div class="card-body">
-        <div class="card-title">${r["ชื่อรายงาน"] || "-"}</div>
-        <div class="card-sub">${r["กลุ่มสาระการเรียนรู้"] || "-"}</div>
-        <div class="card-date">ปีการศึกษา ${r["ปีการศึกษา"] || "-"} • ${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</div>
+        <div class="card-sub">${escapeHtml(r["กลุ่มสาระการเรียนรู้"] || "-")}</div>
+        <div class="card-date">ปีการศึกษา ${escapeHtml(r["ปีการศึกษา"] || "-")} • ${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</div>
       </div>
     </div>`;
 }
 
-function emptyStateHtml(msg) {
-  return `<div class="empty-state"><i class="fa-solid fa-folder-open"></i>${msg}</div>`;
+const coverCache = new Map();
+let pdfWorkerReady = false;
+function ensurePdfWorker() {
+  if (pdfWorkerReady || typeof pdfjsLib === "undefined") return;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"; pdfWorkerReady = true;
 }
 
-function setActiveNav(id) {
-  document.querySelectorAll(".main-nav .nav-item").forEach(n => n.classList.remove("active"));
-  const target = document.getElementById(id);
-  if (target) target.classList.add("active");
-  document.getElementById("subjectMenu").classList.remove("show");
-  document.getElementById("typeMenu").classList.remove("show");
+/* ==========================================================
+   AUTO-DETECT ORIENTATION (Landscape / Portrait)
+========================================================== */
+async function renderCoverThumbnail(cardEl) {
+  const id = cardEl.dataset.reportId;
+  const fileUrl = cardEl.dataset.fileUrl;
+  const frame = cardEl.querySelector(".cover-frame");
+  if (!frame || cardEl.dataset.coverDone === "1") return;
+  cardEl.dataset.coverDone = "1";
+
+  if (!fileUrl) { frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`; return; }
+
+  // 1. ตรวจจับผ่านรูปจาก Google Drive
+  const driveMatch = fileUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || fileUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (driveMatch && driveMatch[1]) {
+    const thumbUrl = `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w800`;
+    const img = new Image();
+    img.alt = "หน้าปกรายงาน";
+    img.onload = () => {
+      // ถ้ารูปมีความกว้างมากกว่าความสูง (แนวนอน) ให้ใส่ class "is-landscape"
+      if (img.naturalWidth > img.naturalHeight) cardEl.classList.add("is-landscape");
+      frame.innerHTML = ""; frame.appendChild(img);
+    };
+    img.onerror = () => frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`;
+    img.src = thumbUrl;
+    return;
+  }
+
+  // 2. ถ้าเป็น PDF.js (ลิงก์ทั่วไปที่ไม่ใช่รูป Drive)
+  if (typeof pdfjsLib === "undefined") { frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`; return; }
+
+  if (coverCache.has(id)) {
+    const cached = coverCache.get(id);
+    if (cached.isLandscape) cardEl.classList.add("is-landscape");
+    frame.innerHTML = `<img src="${cached.url}" alt="หน้าปกรายงาน">`;
+    return;
+  }
+
+  try {
+    ensurePdfWorker();
+    const pdf = await pdfjsLib.getDocument({ url: fileUrl, withCredentials: false }).promise;
+    const page = await pdf.getPage(1);
+    const baseViewport = page.getViewport({ scale: 1 });
+    
+    // ตรวจจับจาก Viewport ของ PDF โดยตรง
+    const isLandscape = baseViewport.width > baseViewport.height;
+    if (isLandscape) cardEl.classList.add("is-landscape");
+
+    const targetWidth = isLandscape ? 600 : 400; // เรนเดอร์ให้ชัดขึ้นถ้าเป็นการ์ดใหญ่
+    const viewport = page.getViewport({ scale: targetWidth / baseViewport.width });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width; canvas.height = viewport.height;
+    
+    await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
+    
+    coverCache.set(id, { url: dataUrl, isLandscape });
+    frame.innerHTML = `<img src="${dataUrl}" alt="หน้าปกรายงาน">`;
+  } catch (err) {
+    frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`;
+  }
 }
+
+let coverObserver = null;
+function observeCovers() {
+  if (!("IntersectionObserver" in window)) { document.querySelectorAll(".report-card").forEach(renderCoverThumbnail); return; }
+  if (coverObserver) coverObserver.disconnect();
+  coverObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => { if (entry.isIntersecting) { renderCoverThumbnail(entry.target); coverObserver.unobserve(entry.target); } });
+  }, { root: null, rootMargin: "300px", threshold: 0.01 });
+  document.querySelectorAll(".report-card").forEach(card => coverObserver.observe(card));
+}
+
+function emptyStateHtml(msg) { return `<div class="empty-state"><i class="fa-solid fa-folder-open"></i><h6>${escapeHtml(msg)}</h6></div>`; }
+function setActiveNav(id) { document.querySelectorAll(".dock .dock-item").forEach(n => n.classList.remove("active")); document.getElementById(id)?.classList.add("active"); }
 
 function showListPage(filterKey, filterValue) {
   currentView = { type: "list", filterKey, filterValue };
   setActiveNav(filterKey === "subject" ? "navSubject" : "navType");
-
+  closeAllFlyouts();
   const label = filterKey === "subject" ? "กลุ่มสาระการเรียนรู้" : "ประเภทรายงาน";
-  const items = sortByDateDesc(allReports.filter(r => r[label] === filterValue));
-  renderListPage(`${label}: ${filterValue}`, items, true);
+  renderListPage(`${label}: ${filterValue}`, sortByDateDesc(allReports.filter(r => r[label] === filterValue)), true);
 }
-
 function renderListPage(title, items, showBack) {
-  const el = document.getElementById("mainView");
-  el.innerHTML = `
-    <div class="list-toolbar">
-      <h4>${title} <span class="text-secondary" style="font-weight:400;font-size:.85rem;">(${items.length} รายการ)</span></h4>
-      ${showBack ? `<a class="back-link" href="javascript:void(0)" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> กลับหน้าแรก</a>` : ""}
-    </div>
-    <div class="report-grid">
-      ${items.length ? items.map(reportCardHtml).join("") : emptyStateHtml("ไม่พบรายงานในหมวดนี้")}
-    </div>`;
+  document.getElementById("mainView").innerHTML = `
+    <div class="list-toolbar reveal"><h4>${escapeHtml(title)} <span class="text-secondary" style="font-weight:400;font-size:.85rem;">(${items.length} รายการ)</span></h4>
+    ${showBack ? `<a class="back-link" href="javascript:void(0)" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> กลับหน้าแรก</a>` : ""}</div>
+    <div class="report-grid">${items.length ? items.map(reportCardHtml).join("") : emptyStateHtml("ไม่พบรายงานในหมวดนี้")}</div>`;
+  observeCovers();
 }
 
+let searchTimer = null;
 function onSearchKeyup(e) {
-  const q = e.target.value.trim().toLowerCase();
-  if (!q) { goHome(); return; }
-  const results = allReports.filter(r =>
-    (r["ชื่อรายงาน"] || "").toLowerCase().includes(q) ||
-    (r["ชื่อ-สกุล"] || "").toLowerCase().includes(q) ||
-    (r["กลุ่มสาระการเรียนรู้"] || "").toLowerCase().includes(q) ||
-    (r["ประเภทรายงาน"] || "").toLowerCase().includes(q)
-  );
-  currentView = { type: "search", q };
-  document.querySelectorAll(".main-nav .nav-item").forEach(n => n.classList.remove("active"));
-  renderListPage(`ผลการค้นหา: "${e.target.value}"`, sortByDateDesc(results), true);
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    const q = e.target.value.trim().toLowerCase();
+    if (!q) { goHome(); return; }
+    currentView = { type: "search", q };
+    setActiveNav("");
+    renderListPage(`ผลการค้นหา: "${q}"`, sortByDateDesc(allReports.filter(r => 
+      (r["ชื่อรายงาน"]||"").toLowerCase().includes(q) || (r["ชื่อ-สกุล"]||"").toLowerCase().includes(q) || 
+      (r["กลุ่มสาระการเรียนรู้"]||"").toLowerCase().includes(q) || (r["ประเภทรายงาน"]||"").toLowerCase().includes(q)
+    )), true);
+  }, 220);
 }
 
-/* ==========================================================
-   DETAIL MODAL
-========================================================== */
 function openDetail(id) {
-  const r = allReports.find(x => x["รหัส"] === id);
-  if (!r) return;
-
-  const owner = canManageClient(r);
-  document.getElementById("detailBody").innerHTML = `
-    <p class="mb-2"><strong>รหัส:</strong> ${r["รหัส"]}</p>
-    <p class="mb-2"><strong>ชื่อรายงาน:</strong> ${r["ชื่อรายงาน"] || "-"}</p>
-    <p class="mb-2"><strong>ประเภทรายงาน:</strong> ${r["ประเภทรายงาน"] || "-"}</p>
-    <p class="mb-2"><strong>กลุ่มสาระการเรียนรู้:</strong> ${r["กลุ่มสาระการเรียนรู้"] || "-"}</p>
-    <p class="mb-2"><strong>ปีการศึกษา:</strong> ${r["ปีการศึกษา"] || "-"}</p>
-    <p class="mb-2"><strong>วันที่ปฏิบัติงาน:</strong> ${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</p>
-    <p class="mb-2"><strong>ผู้บันทึก:</strong> ${r["ชื่อ-สกุล"] || "-"}</p>
-    <p class="mb-0"><a class="btn btn-primary w-100 mt-2" target="_blank" href="${r["ลิงก์ไฟล์รายงาน"]}"><i class="fa-solid fa-file-pdf"></i> เปิดไฟล์รายงาน (PDF)</a></p>
-  `;
-
-  document.getElementById("detailFooter").innerHTML = owner ? `
-    <button class="btn btn-outline-secondary" onclick="closeDetailThen(() => openUploadForm('${id}'))"><i class="fa-solid fa-pen"></i> แก้ไข</button>
-    <button class="btn btn-danger" onclick="confirmDelete('${id}')"><i class="fa-solid fa-trash"></i> ลบ</button>
-  ` : "";
-
+  const r = allReports.find(x => x["รหัส"] === id); if (!r) return;
+  const owner = userSession && (userSession.role === "super" || (userSession.email||"").toLowerCase() === (r["อีเมลผู้บันทึก"]||"").toLowerCase());
+  document.getElementById("detailBody").innerHTML = `<p class="mb-2"><strong>รหัส:</strong> ${escapeHtml(r["รหัส"])}</p><p class="mb-2"><strong>ชื่อรายงาน:</strong> ${escapeHtml(r["ชื่อรายงาน"] || "-")}</p><p class="mb-2"><strong>ประเภทรายงาน:</strong> ${escapeHtml(r["ประเภทรายงาน"] || "-")}</p><p class="mb-2"><strong>กลุ่มสาระการเรียนรู้:</strong> ${escapeHtml(r["กลุ่มสาระการเรียนรู้"] || "-")}</p><p class="mb-2"><strong>ปีการศึกษา:</strong> ${escapeHtml(r["ปีการศึกษา"] || "-")}</p><p class="mb-2"><strong>วันที่ปฏิบัติงาน:</strong> ${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</p><p class="mb-2"><strong>ผู้บันทึก:</strong> ${escapeHtml(r["ชื่อ-สกุล"] || "-")}</p><p class="mb-0"><a class="btn btn-primary w-100 mt-2" target="_blank" rel="noopener noreferrer" href="${encodeURI(r["ลิงก์ไฟล์รายงาน"]||"#")}"><i class="fa-solid fa-file-pdf"></i> เปิดไฟล์รายงาน (PDF)</a></p>`;
+  document.getElementById("detailFooter").innerHTML = owner ? `<button class="btn btn-outline-secondary" onclick="closeDetailThen(() => openUploadForm('${escAttr(r["รหัส"])}'))"><i class="fa-solid fa-pen"></i> แก้ไข</button><button class="btn btn-danger" onclick="confirmDelete('${escAttr(r["รหัส"])}')"><i class="fa-solid fa-trash"></i> ลบ</button>` : "";
   new bootstrap.Modal(document.getElementById("detailModal")).show();
 }
+function closeDetailThen(cb) { bootstrap.Modal.getInstance(document.getElementById("detailModal"))?.hide(); setTimeout(cb, 300); }
 
-function closeDetailThen(cb) {
-  bootstrap.Modal.getInstance(document.getElementById("detailModal"))?.hide();
-  setTimeout(cb, 300);
-}
+/* AUTH & UPLOAD & ADMIN */
+function initGoogleSignIn() { google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: async (res) => { Swal.update({ html: `<div class="spinner-border text-primary"></div><p class="mt-2 small">กำลังตรวจสอบบัญชี...</p>` }); try { const response = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "googleLogin", idToken: res.credential }) }); const result = await response.json(); if (result.status !== "success") throw new Error(result.message); userSession = { token: result.token, ...result.user }; localStorage.setItem("prs_session", JSON.stringify(userSession)); updateAuthUI(); Swal.fire({ icon: "success", title: "เข้าสู่ระบบสำเร็จ", showConfirmButton: false, timer: 1200 }); } catch (err) { Swal.fire({ icon: "error", title: "เข้าสู่ระบบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); } } }); }
+function openLoginModal() { Swal.fire({ title: "เข้าสู่ระบบ", html: `<p class="text-secondary" style="font-size:.85rem;">เข้าสู่ระบบด้วยบัญชี Google ของโรงเรียน</p><div id="gsiBtnContainer" style="display:flex;justify-content:center;margin-top:10px;"></div>`, showConfirmButton: false, showCloseButton: true, didOpen: () => { if (!window.google || !google.accounts) return; google.accounts.id.renderButton(document.getElementById("gsiBtnContainer"), { theme: "outline", size: "large", text: "signin_with", shape: "pill", width: 260 }); } }); }
+function restoreSession() { try { const raw = localStorage.getItem("prs_session"); if (raw) userSession = JSON.parse(raw); } catch (e) { userSession = null; localStorage.removeItem("prs_session"); } }
+function logout() { userSession = null; localStorage.removeItem("prs_session"); updateAuthUI(); }
+function updateAuthUI() { const loginBtn = document.getElementById("loginBtn"), userChip = document.getElementById("userChip"); if (userSession) { loginBtn.classList.add("d-none"); userChip.classList.remove("d-none"); document.getElementById("userAvatar").src = userSession.picture || ""; document.getElementById("userNameLabel").textContent = userSession.name || userSession.email; } else { loginBtn.classList.remove("d-none"); userChip.classList.add("d-none"); } }
+function openUserMenu() { const isSuper = userSession && userSession.role === "super"; Swal.fire({ title: userSession.name || userSession.email, html: `<p class="small text-secondary mb-3">${escapeHtml(userSession.email || "")}</p>`, showCancelButton: true, showConfirmButton: true, confirmButtonText: isSuper ? "จัดการแอดมินใหญ่" : "ออกจากระบบ", cancelButtonText: isSuper ? "ออกจากระบบ" : "ปิด", confirmButtonColor: "#1C86EE", cancelButtonColor: "#CFCFCF" }).then(res => { if (res.isConfirmed) { if (isSuper) openAdminModal(); else logout(); } else if (res.dismiss === Swal.DismissReason.cancel && isSuper) logout(); }); }
 
-function canManageClient(r) {
-  if (!userSession) return false;
-  if (userSession.role === "super") return true;
-  return (userSession.email || "").toLowerCase() === (r["อีเมลผู้บันทึก"] || "").toLowerCase();
-}
-
-/* ==========================================================
-   GOOGLE SIGN-IN
-========================================================== */
-function initGoogleSignIn() {
-  google.accounts.id.initialize({
-    client_id: GOOGLE_CLIENT_ID,
-    callback: onGoogleCredential
-  });
-}
-
-function openLoginModal() {
-  Swal.fire({
-    title: "เข้าสู่ระบบ",
-    html: `<p class="text-secondary" style="font-size:.85rem;">เข้าสู่ระบบด้วยบัญชี Google ของโรงเรียน (@${ALLOWED_DOMAIN}) เพื่ออัปโหลด/แก้ไขรายงานของคุณ</p><div id="gsiBtnContainer" style="display:flex;justify-content:center;margin-top:10px;"></div>`,
-    showConfirmButton: false,
-    showCloseButton: true,
-    didOpen: () => {
-      if (!window.google) {
-        document.getElementById("gsiBtnContainer").innerHTML = '<div class="text-danger small">ไม่สามารถโหลด Google Sign-In ได้ กรุณาลองใหม่</div>';
-        return;
-      }
-      google.accounts.id.renderButton(document.getElementById("gsiBtnContainer"), {
-        theme: "outline", size: "large", text: "signin_with", shape: "pill", width: 260
-      });
-    }
-  });
-}
-
-async function onGoogleCredential(response) {
-  Swal.update({ html: `<div class="spinner-border text-primary"></div><p class="mt-2 small">กำลังตรวจสอบบัญชี...</p>` });
-  try {
-    const res = await fetch(GAS_WEB_APP_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "googleLogin", idToken: response.credential })
-    });
-    const result = await res.json();
-    if (result.status !== "success") throw new Error(result.message || "เข้าสู่ระบบไม่สำเร็จ");
-
-    userSession = { token: result.token, ...result.user };
-    localStorage.setItem("prs_session", JSON.stringify(userSession));
-    updateAuthUI();
-    Swal.fire({ icon: "success", title: "เข้าสู่ระบบสำเร็จ", showConfirmButton: false, timer: 1200 });
-  } catch (err) {
-    Swal.fire({ icon: "error", title: "เข้าสู่ระบบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1E40AF" });
-  }
-}
-
-function restoreSession() {
-  try {
-    const raw = localStorage.getItem("prs_session");
-    if (raw) userSession = JSON.parse(raw);
-  } catch (e) { userSession = null; }
-}
-
-function logout() {
-  userSession = null;
-  localStorage.removeItem("prs_session");
-  updateAuthUI();
-}
-
-function updateAuthUI() {
-  const loginBtn = document.getElementById("loginBtn");
-  const userChip = document.getElementById("userChip");
-  const addBtn = document.getElementById("addBtn");
-
-  if (userSession) {
-    loginBtn.classList.add("d-none");
-    userChip.classList.remove("d-none");
-    addBtn.classList.remove("d-none");
-    document.getElementById("userAvatar").src = userSession.picture || "";
-    document.getElementById("userNameLabel").textContent = userSession.name || userSession.email;
-  } else {
-    loginBtn.classList.remove("d-none");
-    userChip.classList.add("d-none");
-    addBtn.classList.add("d-none");
-  }
-}
-
-function openUserMenu() {
-  const isSuper = userSession && userSession.role === "super";
-  Swal.fire({
-    title: userSession.name,
-    html: `<p class="small text-secondary mb-3">${userSession.email}</p>`,
-    showCancelButton: true,
-    showConfirmButton: true,
-    confirmButtonText: isSuper ? "จัดการแอดมินใหญ่" : "ออกจากระบบ",
-    cancelButtonText: isSuper ? "ออกจากระบบ" : "ปิด",
-    confirmButtonColor: "#1E40AF",
-    cancelButtonColor: "#94a3b8"
-  }).then(res => {
-    if (res.isConfirmed) {
-      if (isSuper) openAdminModal(); else logout();
-    } else if (res.dismiss === Swal.DismissReason.cancel && isSuper) {
-      logout();
-    }
-  });
-}
-
-/* ==========================================================
-   SAVE / UPDATE REPORT
-========================================================== */
 function openUploadForm(editId) {
   if (!userSession) { openLoginModal(); return; }
-
-  document.getElementById("reportForm").reset();
-  document.getElementById("pdfPreview").innerHTML = "";
-  document.getElementById("reportEditId").value = "";
-  ["reportFullName","reportTitle","reportYear","reportDate","reportSubject","reportType","reportFile"]
-    .forEach(id => document.getElementById(id).classList.remove("is-invalid"));
-
+  document.getElementById("reportForm").reset(); document.getElementById("pdfPreview").innerHTML = ""; document.getElementById("reportEditId").value = "";
+  ["reportFullName","reportTitle","reportYear","reportDate","reportSubject","reportType","reportFile"].forEach(id => document.getElementById(id).classList.remove("is-invalid"));
   if (editId) {
-    const r = allReports.find(x => x["รหัส"] === editId);
-    if (!r || !canManageClient(r)) return;
-    document.getElementById("reportFormTitle").textContent = "แก้ไขรายงานผลการปฏิบัติงาน";
-    document.getElementById("reportEditId").value = editId;
-    document.getElementById("reportFullName").value = r["ชื่อ-สกุล"] || "";
-    document.getElementById("reportTitle").value = r["ชื่อรายงาน"] || "";
-    document.getElementById("reportYear").value = r["ปีการศึกษา"] || "";
-    document.getElementById("reportDate").value = toDateInputValue(r["วันที่ปฏิบัติงาน"]);
-    document.getElementById("reportSubject").value = r["กลุ่มสาระการเรียนรู้"] || "";
-    document.getElementById("reportType").value = r["ประเภทรายงาน"] || "";
-  } else {
-    document.getElementById("reportFormTitle").textContent = "เพิ่มรายงานผลการปฏิบัติงาน";
-    document.getElementById("reportFullName").value = userSession.name || "";
-  }
-
+    const r = allReports.find(x => x["รหัส"] === editId); if (!r) return;
+    document.getElementById("reportFormTitle").textContent = "แก้ไขรายงานผลการปฏิบัติงาน"; document.getElementById("reportEditId").value = editId; document.getElementById("reportFullName").value = r["ชื่อ-สกุล"] || ""; document.getElementById("reportTitle").value = r["ชื่อรายงาน"] || ""; document.getElementById("reportYear").value = r["ปีการศึกษา"] || ""; document.getElementById("reportDate").value = (r["วันที่ปฏิบัติงาน"]||"").match(/^(\d{4})-(\d{2})-(\d{2})/) ? (r["วันที่ปฏิบัติงาน"]||"").match(/^(\d{4})-(\d{2})-(\d{2})/)[0] : ""; document.getElementById("reportSubject").value = r["กลุ่มสาระการเรียนรู้"] || ""; document.getElementById("reportType").value = r["ประเภทรายงาน"] || "";
+  } else { document.getElementById("reportFormTitle").textContent = "เพิ่มรายงานผลการปฏิบัติงาน"; document.getElementById("reportFullName").value = userSession.name || ""; }
   new bootstrap.Modal(document.getElementById("reportFormModal")).show();
 }
 
-function toDateInputValue(v) {
-  if (!v) return "";
-  const d = new Date(v);
-  if (isNaN(d)) return "";
-  return d.toISOString().slice(0, 10);
-}
-
 async function saveReport() {
-  const editId = document.getElementById("reportEditId").value;
-  if (!userSession) { openLoginModal(); return; }
-
-  const fullName = document.getElementById("reportFullName").value.trim();
-  const title = document.getElementById("reportTitle").value.trim();
-  const year = document.getElementById("reportYear").value.trim();
-  const eventDate = document.getElementById("reportDate").value;
-  const subjectGroup = document.getElementById("reportSubject").value;
-  const reportType = document.getElementById("reportType").value;
-  const file = document.getElementById("reportFile").files[0];
-
-  ["reportFullName","reportTitle","reportYear","reportDate","reportSubject","reportType","reportFile"]
-    .forEach(id => document.getElementById(id).classList.remove("is-invalid"));
-
-  const missing = [];
-  if (!fullName) missing.push("reportFullName");
-  if (!title) missing.push("reportTitle");
-  if (!year) missing.push("reportYear");
-  if (!eventDate) missing.push("reportDate");
-  if (!subjectGroup) missing.push("reportSubject");
-  if (!reportType) missing.push("reportType");
+  const editId = document.getElementById("reportEditId").value; if (!userSession) return;
+  const fullName = document.getElementById("reportFullName").value.trim(), title = document.getElementById("reportTitle").value.trim(), year = document.getElementById("reportYear").value.trim(), eventDate = document.getElementById("reportDate").value, subjectGroup = document.getElementById("reportSubject").value, reportType = document.getElementById("reportType").value, file = document.getElementById("reportFile").files[0];
+  const missing = ["reportFullName","reportTitle","reportYear","reportDate","reportSubject","reportType"].filter(id => !document.getElementById(id).value.trim());
   if (!editId && !file) missing.push("reportFile");
-
-  if (missing.length > 0) {
-    missing.forEach(id => document.getElementById(id).classList.add("is-invalid"));
-    document.getElementById(missing[0]).scrollIntoView({ behavior: "smooth", block: "center" });
-    return Swal.fire({ icon: "warning", title: "ข้อมูลไม่ครบ", text: "กรุณากรอกข้อมูลในช่องที่มีกรอบสีแดงให้ครบ", confirmButtonColor: "#1E40AF" });
-  }
-  if (!/^\d+$/.test(year)) {
-    document.getElementById("reportYear").classList.add("is-invalid");
-    return Swal.fire({ icon: "warning", title: "ปีการศึกษาไม่ถูกต้อง", text: "กรุณากรอกเฉพาะตัวเลขเท่านั้น", confirmButtonColor: "#1E40AF" });
-  }
-  if (file) {
-    if (file.type !== "application/pdf") {
-      document.getElementById("reportFile").classList.add("is-invalid");
-      return Swal.fire({ icon: "error", title: "ไฟล์ไม่ถูกต้อง", text: "อนุญาตเฉพาะไฟล์ PDF เท่านั้น", confirmButtonColor: "#1E40AF" });
-    }
-    if (file.size > MAX_UPLOAD_BYTES) {
-      document.getElementById("reportFile").classList.add("is-invalid");
-      return Swal.fire({ icon: "error", title: "ไฟล์ใหญ่เกินไป", text: `ไฟล์ต้องไม่เกิน ${formatMB(MAX_UPLOAD_BYTES)} MB`, confirmButtonColor: "#1E40AF" });
-    }
-  }
-
-  const btn = document.getElementById("btn-save");
-  btn.disabled = true;
-  btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> กำลังบันทึก...`;
-
-  Swal.fire({ title: file ? "กำลังอัปโหลดไฟล์..." : "กำลังบันทึกข้อมูล", html: "กรุณารอสักครู่... (0%)", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-
+  if (missing.length) { missing.forEach(id => document.getElementById(id).classList.add("is-invalid")); return Swal.fire({ icon: "warning", title: "ข้อมูลไม่ครบ", text: "กรุณากรอกข้อมูลให้ครบ", confirmButtonColor: "#1C86EE" }); }
+  
+  const btn = document.getElementById("btn-save"); btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> บันทึก...`;
+  Swal.fire({ title: "กำลังบันทึก...", html: "(0%)", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   try {
     let uploadId = null;
     if (file) {
-      uploadId = await uploadFileInChunks(file, (percent) => {
-        Swal.update({ html: `กรุณารอสักครู่... (${percent}%)` });
-      });
+      const base64 = await new Promise(r => { const rd = new FileReader(); rd.onload=()=>r(rd.result.split(",")[1]); rd.readAsDataURL(file); });
+      const CHUNK = 6*1024*1024, total = Math.ceil(base64.length/CHUNK); uploadId = "up"+Date.now();
+      for (let i = 0; i < total; i++) {
+        await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "uploadChunk", uploadId, chunkIndex: i, totalChunks: total, chunkData: base64.slice(i*CHUNK, (i+1)*CHUNK) }) });
+        Swal.update({ html: `(${Math.round(((i+1)/total)*100)}%)` });
+      }
     }
-
-    const payload = {
-      action: editId ? "update" : "create",
-      token: userSession.token,
-      id: editId || undefined,
-      fullName, title, year, eventDate, subjectGroup, reportType,
-      uploadId, fileMimeType: file ? file.type : undefined
-    };
-
-    const response = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify(payload) });
-    const result = await response.json();
-    if (result.status !== "success") throw new Error(result.message || "เกิดข้อผิดพลาด");
-
-    bootstrap.Modal.getInstance(document.getElementById("reportFormModal"))?.hide();
-    document.getElementById("reportForm").reset();
-    document.getElementById("pdfPreview").innerHTML = "";
-
-    await Swal.fire({ icon: "success", title: editId ? "แก้ไขรายงานสำเร็จ" : "บันทึกรายงานสำเร็จ", showConfirmButton: false, timer: 1300 });
-
-    await loadReports();
-    if (currentView.type === "home") renderHome();
-    else if (currentView.type === "list") showListPage(currentView.filterKey, currentView.filterValue);
-
-  } catch (err) {
-    console.error(err);
-    Swal.fire({ icon: "error", title: "บันทึกไม่สำเร็จ", text: getUploadErrorMessage(err), confirmButtonColor: "#1E40AF" });
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> บันทึก`;
-  }
+    const res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: editId?"update":"create", token: userSession.token, id: editId||undefined, fullName, title, year, eventDate, subjectGroup, reportType, uploadId, fileMimeType: file?.type }) });
+    if ((await res.json()).status !== "success") throw new Error("บันทึกไม่สำเร็จ");
+    bootstrap.Modal.getInstance(document.getElementById("reportFormModal"))?.hide(); await Swal.fire({ icon: "success", title: "สำเร็จ", showConfirmButton: false, timer: 1300 });
+    await loadReports(); if (currentView.type === "home") renderHome(); else if (currentView.type === "list") showListPage(currentView.filterKey, currentView.filterValue); else if (currentView.type === "category") showCategoryOverview(currentView.kind);
+  } catch (err) { Swal.fire({ icon: "error", title: "ผิดพลาด", text: err.message, confirmButtonColor: "#1C86EE" }); }
+  finally { btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> บันทึก`; }
 }
 
-/* ==========================================================
-   DELETE REPORT
-========================================================== */
-function confirmDelete(id) {
-  const r = allReports.find(x => x["รหัส"] === id);
-  Swal.fire({
-    icon: "warning",
-    title: "ยืนยันการลบรายงาน",
-    text: `"${r ? r["ชื่อรายงาน"] : ""}" จะถูกลบออกจากระบบอย่างถาวร`,
-    showCancelButton: true,
-    confirmButtonText: "ลบรายงาน",
-    cancelButtonText: "ยกเลิก",
-    confirmButtonColor: "#DC2626",
-    cancelButtonColor: "#94a3b8"
-  }).then(res => { if (res.isConfirmed) deleteReport(id); });
-}
-
+function confirmDelete(id) { Swal.fire({ icon: "warning", title: "ยืนยันการลบ", showCancelButton: true, confirmButtonColor: "#CD0000" }).then(res => { if(res.isConfirmed) deleteReport(id); }); }
 async function deleteReport(id) {
-  bootstrap.Modal.getInstance(document.getElementById("detailModal"))?.hide();
-  Swal.fire({ title: "กำลังลบรายงาน", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-  try {
-    const res = await fetch(GAS_WEB_APP_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "delete", token: userSession.token, id })
-    });
-    const result = await res.json();
-    if (result.status !== "success") throw new Error(result.message || "เกิดข้อผิดพลาด");
-
-    await Swal.fire({ icon: "success", title: "ลบรายงานสำเร็จ", showConfirmButton: false, timer: 1300 });
-    await loadReports();
-    if (currentView.type === "home") renderHome();
-    else if (currentView.type === "list") showListPage(currentView.filterKey, currentView.filterValue);
-  } catch (err) {
-    Swal.fire({ icon: "error", title: "ลบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1E40AF" });
-  }
+  bootstrap.Modal.getInstance(document.getElementById("detailModal"))?.hide(); Swal.fire({ title: "กำลังลบ", didOpen: () => Swal.showLoading() });
+  try { await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "delete", token: userSession.token, id }) });
+    await Swal.fire({ icon: "success", title: "ลบสำเร็จ", showConfirmButton: false, timer: 1300 }); await loadReports(); renderHome();
+  } catch (err) { Swal.fire({ icon: "error", text: err.message }); }
 }
 
-/* ==========================================================
-   ADMIN MANAGEMENT (super only)
-========================================================== */
-async function openAdminModal() {
-  new bootstrap.Modal(document.getElementById("adminModal")).show();
-  await refreshAdminList();
-}
+async function openAdminModal() { new bootstrap.Modal(document.getElementById("adminModal")).show(); await refreshAdminList(); }
+async function refreshAdminList() { const listEl = document.getElementById("adminList"); try { const res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "listAdmins", token: userSession.token }) }); const data = await res.json(); listEl.innerHTML = data.admins.map(a => `<div class="list-group-item d-flex justify-content-between"><div>${escapeHtml(a.displayName)} <small class="text-secondary">(${escapeHtml(a.email)})</small></div><button class="btn btn-sm btn-outline-danger" onclick="removeAdmin('${escAttr(a.email)}')"><i class="fa-solid fa-trash"></i></button></div>`).join(""); } catch(e){} }
+async function addAdmin() { await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "addAdmin", token: userSession.token, email: document.getElementById("newAdminEmail").value, displayName: document.getElementById("newAdminName").value }) }); document.getElementById("newAdminEmail").value=""; document.getElementById("newAdminName").value=""; await refreshAdminList(); }
+async function removeAdmin(email) { await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "deleteAdmin", token: userSession.token, email }) }); await refreshAdminList(); }
 
-async function refreshAdminList() {
-  const listEl = document.getElementById("adminList");
-  listEl.innerHTML = `<div class="text-center py-3"><div class="spinner-border text-primary"></div></div>`;
-  try {
-    const res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "listAdmins", token: userSession.token }) });
-    const result = await res.json();
-    if (result.status !== "success") throw new Error(result.message);
-    listEl.innerHTML = result.admins.map(a => `
-      <div class="list-group-item d-flex justify-content-between align-items-center">
-        <div><div>${a.displayName}</div><div class="small text-secondary">${a.email}</div></div>
-        <button class="btn btn-sm btn-outline-danger" onclick="removeAdmin('${a.email}')"><i class="fa-solid fa-trash"></i></button>
-      </div>`).join("") || `<div class="text-secondary small text-center py-2">ยังไม่มีแอดมินใหญ่คนอื่น</div>`;
-  } catch (err) {
-    listEl.innerHTML = `<div class="text-danger small">${err.message}</div>`;
-  }
-}
+function previewPDFName() { const f = document.getElementById("reportFile").files[0]; document.getElementById("pdfPreview").innerHTML = f ? `<i class="fa-solid fa-file-pdf text-danger"></i> ${escapeHtml(f.name)}` : ""; }
+function setNoticeState(show) { document.getElementById("line-notice").classList.toggle("show", show); document.documentElement.style.setProperty("--notice-offset", show ? "46px" : "0px"); }
+function hideNoticePermanently() { setNoticeState(false); sessionStorage.setItem("hideLineNotice", "true"); }
+function openInBrowser() { const url = window.location.href; if(navigator.userAgent.toLowerCase().includes("android")) window.location.href = "intent://" + url.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end"; else window.open(url, "_blank"); }
+function checkLineBrowser() { if (navigator.userAgent.toLowerCase().includes("line") && sessionStorage.getItem("hideLineNotice") !== "true") setNoticeState(true); }
 
-async function addAdmin() {
-  const email = document.getElementById("newAdminEmail").value.trim();
-  const displayName = document.getElementById("newAdminName").value.trim();
-  if (!email) return;
-  try {
-    const res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "addAdmin", token: userSession.token, email, displayName }) });
-    const result = await res.json();
-    if (result.status !== "success") throw new Error(result.message);
-    document.getElementById("newAdminEmail").value = "";
-    document.getElementById("newAdminName").value = "";
-    await refreshAdminList();
-  } catch (err) {
-    Swal.fire({ icon: "error", title: "เพิ่มไม่สำเร็จ", text: err.message, confirmButtonColor: "#1E40AF" });
-  }
-}
-
-async function removeAdmin(email) {
-  try {
-    const res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "deleteAdmin", token: userSession.token, email }) });
-    const result = await res.json();
-    if (result.status !== "success") throw new Error(result.message);
-    await refreshAdminList();
-  } catch (err) {
-    Swal.fire({ icon: "error", title: "ลบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1E40AF" });
-  }
-}
-
-/* ==========================================================
-   CHUNKED UPLOAD (เหมือนเดิม รองรับไฟล์ใหญ่ถึง ~50MB)
-========================================================== */
-const MAX_UPLOAD_BYTES = 50 * 1024 * 1024;
-const UPLOAD_CHUNK_SIZE = 6 * 1024 * 1024;
-
-function formatMB(bytes) { return (bytes / (1024 * 1024)).toFixed(1); }
-
-function getUploadErrorMessage(err) {
-  const isNetworkError = err instanceof TypeError && /fetch/i.test(err.message || "");
-  if (isNetworkError) return "การเชื่อมต่อกับเซิร์ฟเวอร์ขาดหายระหว่างอัปโหลด กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่อีกครั้ง";
-  return err.message || "เกิดข้อผิดพลาดที่ไม่ทราบสาเหตุ";
-}
-
-function generateUploadId() {
-  if (window.crypto && crypto.randomUUID) return crypto.randomUUID().replace(/-/g, "");
-  return "up" + Date.now() + Math.random().toString(36).slice(2, 10);
-}
-
-function convertFileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result.split(",")[1]);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
-
-async function uploadFileInChunks(file, onProgress) {
-  const base64 = await convertFileToBase64(file);
-  const uploadId = generateUploadId();
-  const totalChunks = Math.max(1, Math.ceil(base64.length / UPLOAD_CHUNK_SIZE));
-
-  for (let i = 0; i < totalChunks; i++) {
-    const chunkData = base64.slice(i * UPLOAD_CHUNK_SIZE, (i + 1) * UPLOAD_CHUNK_SIZE);
-    await uploadChunkWithRetry(uploadId, i, totalChunks, chunkData);
-    if (onProgress) onProgress(Math.round(((i + 1) / totalChunks) * 100));
-  }
-  return uploadId;
-}
-
-async function uploadChunkWithRetry(uploadId, chunkIndex, totalChunks, chunkData, attempt) {
-  attempt = attempt || 1;
-  try {
-    const response = await fetch(GAS_WEB_APP_URL, {
-      method: "POST",
-      body: JSON.stringify({ action: "uploadChunk", uploadId, chunkIndex, totalChunks, chunkData })
-    });
-    const result = await response.json();
-    if (result.status !== "success") throw new Error(result.message || `อัปโหลดชิ้นที่ ${chunkIndex + 1}/${totalChunks} ไม่สำเร็จ`);
-  } catch (err) {
-    if (attempt < 3) {
-      await new Promise(r => setTimeout(r, 800 * attempt));
-      return uploadChunkWithRetry(uploadId, chunkIndex, totalChunks, chunkData, attempt + 1);
-    }
-    throw err;
-  }
-}
-
-function previewPDFName() {
-  const file = document.getElementById("reportFile").files[0];
-  const preview = document.getElementById("pdfPreview");
-  preview.innerHTML = file ? `<i class="fa-solid fa-file-pdf text-danger"></i> ${file.name}` : "";
-}
-
-/* ==========================================================
-   LINE IN-APP BROWSER NOTICE
-========================================================== */
-function hideNoticePermanently() {
-  document.getElementById("line-notice").style.display = "none";
-  sessionStorage.setItem("hideLineNotice", "true");
-}
-function openInBrowser() {
-  const url = window.location.href;
-  const isAndroid = navigator.userAgent.toLowerCase().indexOf("android") > -1;
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  if (isAndroid) window.location.href = "intent://" + url.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end";
-  else if (isIOS) alert("บน iPhone/iPad: กรุณากดปุ่ม 3 จุด (⋯) มุมขวาบน แล้วเลือก 'เปิดใน Safari'");
-  else window.open(url, "_blank");
-}
-function checkLineBrowser() {
-  const ua = navigator.userAgent.toLowerCase();
-  if (ua.indexOf("line") > -1 && sessionStorage.getItem("hideLineNotice") !== "true") {
-    document.getElementById("line-notice").style.display = "block";
-  }
-}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest(".btn, .dock-item, .fab-btn, .header-btn, .report-card, .user-chip"); if(!t) return;
+  t.classList.add("ripple"); const r = t.getBoundingClientRect(), s = Math.max(r.width, r.height), d = document.createElement("span");
+  d.className = "ripple-dot"; d.style.width = d.style.height = s+"px"; d.style.left = (e.clientX - r.left - s/2)+"px"; d.style.top = (e.clientY - r.top - s/2)+"px";
+  t.appendChild(d); setTimeout(() => d.remove(), 650);
+});
 </script>
 </body>
 </html>
