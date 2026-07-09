@@ -933,7 +933,7 @@ function reportCardHtml(r, idx) {
     <div class="report-card reveal" style="animation-delay:${delay}s; --accent:${groupColor(r)};" onclick="openDetail('${escAttr(id)}')" data-report-id="${escAttr(id)}" data-file-url="${escAttr(fileUrl)}">
       <div class="card-cover">
         <div class="cover-frame"><i class="fa-solid fa-file-pdf cover-placeholder is-loading"></i></div>
-        <span class="card-type-badge" style="background:${groupColor(r)}" title="${escAttr(r["ประเภทรายงาน"]||"-")}">${escapeHtml(r["ประเภทรายงาน"] || "-")}</span>
+        <span class="card-type-badge" style="background:${groupColor(r)}" title="รหัสรายงาน: ${escAttr(id)}">${escapeHtml(id || "-")}</span>
         ${isMine ? `<span class="card-owner-badge" title="รายงานของฉัน"><i class="fa-solid fa-user-check"></i></span>` : ""}
         <div class="cover-title-overlay">${escapeHtml(title)}</div>
       </div>
