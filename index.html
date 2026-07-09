@@ -730,6 +730,28 @@ function getReporterEmail(r) {
   }
   return "";
 }
+function normalizeText(v) {
+  return String(v ?? "").toLowerCase().normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "").trim();
+}
+function getReporterName(r) {
+  const nameFields = ["ชื่อ-สกุล", "ชื่อสกุล", "ชื่อผู้บันทึก", "ผู้บันทึก", "ผู้บันทึกรายงาน", "reporterName", "name", "ชื่อผู้ใช้"];
+  for (const key of nameFields) {
+    if (r[key] && String(r[key]).trim()) return String(r[key]).trim();
+  }
+  return "";
+}
+function isReporterOwner(r, session) {
+  if (!session) return false;
+  const currentEmail = (session.email || "").trim().toLowerCase();
+  const currentName = (session.name || "").trim();
+  const reportEmail = getReporterEmail(r).trim().toLowerCase();
+  if (reportEmail && currentEmail && reportEmail === currentEmail) return true;
+  if (currentName) {
+    const reportName = getReporterName(r);
+    if (reportName && normalizeText(reportName) === normalizeText(currentName)) return true;
+  }
+  return false;
+}
 // ⚠️ NEW: log ชื่อคีย์จริงของข้อมูล 1 แถวไว้ใน console (F12 > Console) ครั้งเดียวตอนโหลดเสร็จ
 // เพื่อให้ตรวจสอบง่ายว่าคีย์อีเมลจริง ๆ ที่ backend ส่งมาชื่ออะไร ถ้ายังหาไม่เจอในลิสต์ข้างบน
 let _loggedFieldNamesOnce = false;
@@ -737,7 +759,11 @@ function debugLogFieldNamesOnce() {
   if (_loggedFieldNamesOnce || allReports.length === 0) return;
   _loggedFieldNamesOnce = true;
   console.info("[PRS] ตัวอย่างชื่อคีย์ข้อมูลรายงาน (แถวแรก):", Object.keys(allReports[0]));
-  if (!getReporterEmail(allReports[0])) console.warn("[PRS] ไม่พบฟิลด์อีเมลผู้บันทึกในข้อมูล กรุณาตรวจสอบชื่อคอลัมน์จริงจาก log ด้านบน แล้วเพิ่มเข้าไปใน EMAIL_FIELD_CANDIDATES");
+  if (!getReporterEmail(allReports[0]) && !getReporterName(allReports[0])) {
+    console.warn("[PRS] ไม่พบฟิลด์อีเมลผู้บันทึกในข้อมูล และไม่พบชื่อผู้บันทึกในข้อมูล กรุณาตรวจสอบชื่อคอลัมน์จริงจาก log ด้านบน แล้วเพิ่มเข้าไปใน EMAIL_FIELD_CANDIDATES หรือส่งชื่อผู้บันทึกเพิ่มเติม");
+  } else if (!getReporterEmail(allReports[0])) {
+    console.info("[PRS] ไม่มีคอลัมน์อีเมลผู้บันทึก แต่พบชื่อผู้บันทึกในข้อมูล จึงใช้ชื่อในการตรวจสอบเจ้าของรายงานแทน");
+  }
 }
 
 let allReports = [];
@@ -902,7 +928,7 @@ function renderHome() {
 
 function reportCardHtml(r, idx) {
   const id = r["รหัส"], delay = Math.min(idx || 0, 10) * 0.05, title = r["ชื่อรายงาน"] || "-", fileUrl = r["ลิงก์ไฟล์รายงาน"] || "";
-  const isMine = userSession && (userSession.email||"").toLowerCase() === getReporterEmail(r).toLowerCase();
+  const isMine = !!(userSession && isReporterOwner(r, userSession));
   return `
     <div class="report-card reveal" style="animation-delay:${delay}s; --accent:${groupColor(r)};" onclick="openDetail('${escAttr(id)}')" data-report-id="${escAttr(id)}" data-file-url="${escAttr(fileUrl)}">
       <div class="card-cover">
@@ -1034,7 +1060,7 @@ function onSearchKeyup(e) {
 
 function openDetail(id) {
   const r = allReports.find(x => x["รหัส"] === id); if (!r) return;
-  const owner = userSession && (userSession.role === "super" || (userSession.email||"").toLowerCase() === getReporterEmail(r).toLowerCase());
+  const owner = userSession && (userSession.role === "super" || isReporterOwner(r, userSession));
 
   document.getElementById("detailBody").innerHTML = `
     <div class="detail-hero">
@@ -1137,7 +1163,7 @@ function updateAuthUI() { const loginBtn = document.getElementById("loginBtn"), 
 // เดิมใช้ confirm/cancel ของ Swal 2 ปุ่มเท่านั้น ทำให้ใส่ฟังก์ชันเพิ่มไม่ได้ จึงเปลี่ยนมาใช้ html ปุ่มเอง
 function openUserMenu() {
   const isSuper = userSession && userSession.role === "super";
-  const myCount = allReports.filter(r => getReporterEmail(r).toLowerCase() === (userSession.email || "").toLowerCase()).length;
+  const myCount = allReports.filter(r => isReporterOwner(r, userSession)).length;
   Swal.fire({
     title: userSession.name || userSession.email,
     html: `
@@ -1158,7 +1184,7 @@ function showMyReports() {
   if (!userSession) { openLoginModal(); return; }
   currentView = { type: "mine" };
   setActiveNav("");
-  const mine = sortByDateDesc(allReports.filter(r => getReporterEmail(r).toLowerCase() === (userSession.email || "").toLowerCase()));
+  const mine = sortByDateDesc(allReports.filter(r => isReporterOwner(r, userSession)));
   document.getElementById("mainView").innerHTML = `
     <div class="list-toolbar reveal"><h4><i class="fa-solid fa-folder-user" style="color:var(--navy-soft);margin-right:6px;"></i>รายงานผลการปฏิบัติงานของฉัน <span class="text-secondary" style="font-weight:400;font-size:.85rem;">(${mine.length} รายการ)</span></h4>
     <a class="back-link" href="javascript:void(0)" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> กลับหน้าแรก</a></div>
