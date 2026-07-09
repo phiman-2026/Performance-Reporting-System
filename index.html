@@ -263,7 +263,22 @@ button{ font-family:inherit; }
 .report-card .card-body { padding: 26px 18px 18px; }
 .report-card .card-sub { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
 .report-card .card-sub::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
-.report-card .card-date { font-size: 0.75rem; color: var(--text-faint); margin-top: 4px; }
+.report-card .card-author { font-size: 0.78rem; color: var(--text); font-weight: 600; margin-top: 7px; display: flex; align-items: center; gap: 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.report-card .card-author i { font-size: 0.7rem; color: var(--accent); flex-shrink:0; }
+.report-card .card-date { font-size: 0.75rem; color: var(--text-faint); margin-top: 6px; display:flex; align-items:center; gap:5px; }
+.report-card .card-date i { font-size: 0.68rem; }
+
+/* ---------- CARD BADGES (ประเภทรายงาน / เจ้าของรายงาน) ---------- */
+.card-type-badge{
+  position:absolute; top:12px; right:12px; z-index:3; color:#fff; font-size:.64rem; font-weight:700;
+  padding:5px 12px; border-radius:999px; box-shadow:0 4px 10px rgba(0,0,0,.2);
+  max-width:72%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:.01em;
+}
+.card-owner-badge{
+  position:absolute; top:12px; left:12px; z-index:3; width:28px; height:28px; border-radius:50%;
+  background:rgba(255,255,255,.95); color:var(--navy); display:flex; align-items:center; justify-content:center;
+  font-size:.78rem; box-shadow:0 4px 10px rgba(0,0,0,.18);
+}
 
 /* ---------- CATEGORY OVERVIEW ---------- */
 .category-grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:14px; }
@@ -765,9 +780,10 @@ function showCategoryOverview(kind) {
   const isType = kind === "type"; const list = isType ? REPORT_TYPES : SUBJECT_GROUPS;
   const colorMap = isType ? TYPE_COLOR_MAP : SUBJECT_COLOR_MAP; const label = isType ? "ประเภทรายงาน" : "กลุ่มสาระการเรียนรู้";
   const icon = isType ? "fa-layer-group" : "fa-book";
+  const counts = groupReports(allReports, label); // ⚠️ NEW: นับจำนวนครั้งเดียวแทนการ filter() ทั้ง array ซ้ำต่อหนึ่งหมวดหมู่
   document.getElementById("mainView").innerHTML = `
     <div class="list-toolbar reveal"><h4>${escapeHtml(label)}ทั้งหมด</h4><a class="back-link" href="javascript:void(0)" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> กลับหน้าแรก</a></div>
-    <div class="category-grid">${list.map(name => `<div class="category-tile reveal" style="background:${colorMap[name]}" onclick="showListPage('${isType ? "type" : "subject"}','${escAttr(name)}')"><i class="fa-solid ${icon} tile-icon"></i><div><div class="tile-name">${escapeHtml(name)}</div><div class="tile-count">${allReports.filter(r => r[label] === name).length} รายการ</div></div></div>`).join("")}</div>`;
+    <div class="category-grid">${list.map(name => `<div class="category-tile reveal" style="background:${colorMap[name]}" onclick="showListPage('${isType ? "type" : "subject"}','${escAttr(name)}')"><i class="fa-solid ${icon} tile-icon"></i><div><div class="tile-name">${escapeHtml(name)}</div><div class="tile-count">${(counts.get(name)||[]).length} รายการ</div></div></div>`).join("")}</div>`;
 }
 
 function toggleFab() {
@@ -802,7 +818,27 @@ function goHome() { currentView = { type: "home" }; setActiveNav("navHome"); ren
 async function retryLoad() {
   document.getElementById("mainView").innerHTML = `<div class="empty-state"><i class="fa-solid fa-spinner fa-spin"></i><h6>กำลังลองโหลดใหม่...</h6></div>`;
   await loadReports();
-  if (currentView.type === "home") renderHome(); else if (currentView.type === "list") showListPage(currentView.filterKey, currentView.filterValue); else if (currentView.type === "category") showCategoryOverview(currentView.kind);
+  refreshCurrentView();
+}
+// ⚠️ NEW: รวม logic การ re-render ตาม currentView ไว้ที่เดียว (เดิมกระจายซ้ำกันหลายจุด เช่นใน saveReport/retryLoad)
+function refreshCurrentView() {
+  if (currentView.type === "home") renderHome();
+  else if (currentView.type === "list") showListPage(currentView.filterKey, currentView.filterValue);
+  else if (currentView.type === "category") showCategoryOverview(currentView.kind);
+  else if (currentView.type === "mine") showMyReports();
+  else renderHome();
+}
+
+// ⚠️ NEW: จัดกลุ่มข้อมูลครั้งเดียวด้วย Map แทนการวน allReports.filter() ซ้ำสำหรับทุกหมวดหมู่
+// เดิม renderHome/showCategoryOverview จะ scan array ทั้งหมดซ้ำ ๆ (O(n*k)) ตอนนี้ scan ครั้งเดียว (O(n)) แล้วดึงจาก Map
+function groupReports(list, key) {
+  const map = new Map();
+  for (const r of list) {
+    const k = r[key] || "";
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(r);
+  }
+  return map;
 }
 
 function renderHome() {
@@ -812,9 +848,10 @@ function renderHome() {
     return;
   }
   if (allReports.length === 0) { el.innerHTML = emptyStateHtml("ยังไม่มีรายงานในระบบ"); return; }
+  const byType = groupReports(allReports, "ประเภทรายงาน");
   let html = "";
   REPORT_TYPES.forEach(type => {
-    const items = sortByDateDesc(allReports.filter(r => r["ประเภทรายงาน"] === type)).slice(0, 5);
+    const items = sortByDateDesc(byType.get(type) || []).slice(0, 5);
     if (items.length === 0) return;
     html += `<div class="type-row reveal"><div class="row-header"><h5>${escapeHtml(type)}</h5><a href="javascript:void(0)" onclick="showListPage('type','${escAttr(type)}')">ดูทั้งหมด <i class="fa-solid fa-chevron-right"></i></a></div><div class="scroll-row">${items.map(reportCardHtml).join("")}</div></div>`;
   });
@@ -824,15 +861,19 @@ function renderHome() {
 
 function reportCardHtml(r, idx) {
   const id = r["รหัส"], delay = Math.min(idx || 0, 10) * 0.05, title = r["ชื่อรายงาน"] || "-", fileUrl = r["ลิงก์ไฟล์รายงาน"] || "";
+  const isMine = userSession && (userSession.email||"").toLowerCase() === (r["อีเมลผู้บันทึก"]||"").toLowerCase();
   return `
     <div class="report-card reveal" style="animation-delay:${delay}s; --accent:${groupColor(r)};" onclick="openDetail('${escAttr(id)}')" data-report-id="${escAttr(id)}" data-file-url="${escAttr(fileUrl)}">
       <div class="card-cover">
         <div class="cover-frame"><i class="fa-solid fa-file-pdf cover-placeholder is-loading"></i></div>
+        <span class="card-type-badge" style="background:${groupColor(r)}" title="${escAttr(r["ประเภทรายงาน"]||"-")}">${escapeHtml(r["ประเภทรายงาน"] || "-")}</span>
+        ${isMine ? `<span class="card-owner-badge" title="รายงานของฉัน"><i class="fa-solid fa-user-check"></i></span>` : ""}
         <div class="cover-title-overlay">${escapeHtml(title)}</div>
       </div>
       <div class="card-body">
         <div class="card-sub">${escapeHtml(r["กลุ่มสาระการเรียนรู้"] || "-")}</div>
-        <div class="card-date">ปีการศึกษา ${escapeHtml(r["ปีการศึกษา"] || "-")} • ${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</div>
+        <div class="card-author"><i class="fa-solid fa-user-tie"></i> ${escapeHtml(r["ชื่อ-สกุล"] || "-")}</div>
+        <div class="card-date"><i class="fa-regular fa-calendar"></i> ปีการศึกษา ${escapeHtml(r["ปีการศึกษา"] || "-")} • ${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</div>
       </div>
     </div>`;
 }
@@ -1004,6 +1045,7 @@ function initGoogleSignIn() {
         userSession = { token: result.token, expiresAt, ...result.user };
         localStorage.setItem("prs_session", JSON.stringify(userSession));
         updateAuthUI();
+        refreshCurrentView(); // ⚠️ NEW: อัปเดตป้ายเจ้าของ/ปุ่มแก้ไข-ลบทันทีหลังล็อกอิน โดยไม่ต้องรีเฟรชหน้า
         Swal.fire({ icon: "success", title: "เข้าสู่ระบบสำเร็จ", showConfirmButton: false, timer: 1200 });
       } catch (err) { Swal.fire({ icon: "error", title: "เข้าสู่ระบบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
     }
@@ -1042,9 +1084,40 @@ function restoreSession() {
     userSession = session;
   } catch (e) { userSession = null; localStorage.removeItem("prs_session"); }
 }
-function logout() { userSession = null; localStorage.removeItem("prs_session"); updateAuthUI(); }
+function logout() { userSession = null; localStorage.removeItem("prs_session"); updateAuthUI(); if (currentView.type === "mine") goHome(); else refreshCurrentView(); }
 function updateAuthUI() { const loginBtn = document.getElementById("loginBtn"), userChip = document.getElementById("userChip"); if (userSession) { loginBtn.classList.add("d-none"); userChip.classList.remove("d-none"); document.getElementById("userAvatar").src = userSession.picture || ""; document.getElementById("userNameLabel").textContent = userSession.name || userSession.email; } else { loginBtn.classList.remove("d-none"); userChip.classList.add("d-none"); } }
-function openUserMenu() { const isSuper = userSession && userSession.role === "super"; Swal.fire({ title: userSession.name || userSession.email, html: `<p class="small text-secondary mb-3">${escapeHtml(userSession.email || "")}</p>`, showCancelButton: true, showConfirmButton: true, confirmButtonText: isSuper ? "จัดการแอดมินใหญ่" : "ออกจากระบบ", cancelButtonText: isSuper ? "ออกจากระบบ" : "ปิด", confirmButtonColor: "#1C86EE", cancelButtonColor: "#CFCFCF" }).then(res => { if (res.isConfirmed) { if (isSuper) openAdminModal(); else logout(); } else if (res.dismiss === Swal.DismissReason.cancel && isSuper) logout(); }); }
+// ⚠️ NEW: เมนูผู้ใช้แบบมีปุ่มหลายรายการ (เพิ่ม "รายงานผลการปฏิบัติงานของฉัน" ตามที่ร้องขอ)
+// เดิมใช้ confirm/cancel ของ Swal 2 ปุ่มเท่านั้น ทำให้ใส่ฟังก์ชันเพิ่มไม่ได้ จึงเปลี่ยนมาใช้ html ปุ่มเอง
+function openUserMenu() {
+  const isSuper = userSession && userSession.role === "super";
+  const myCount = allReports.filter(r => (r["อีเมลผู้บันทึก"] || "").toLowerCase() === (userSession.email || "").toLowerCase()).length;
+  Swal.fire({
+    title: userSession.name || userSession.email,
+    html: `
+      <p class="small text-secondary mb-3" style="margin-top:-8px;">${escapeHtml(userSession.email || "")}</p>
+      <div class="d-grid gap-2">
+        <button type="button" class="btn btn-primary" onclick="Swal.close(); showMyReports();"><i class="fa-solid fa-folder-user"></i> รายงานผลการปฏิบัติงานของฉัน (${myCount})</button>
+        ${isSuper ? `<button type="button" class="btn btn-outline-secondary" onclick="Swal.close(); openAdminModal();"><i class="fa-solid fa-user-shield"></i> จัดการแอดมินใหญ่</button>` : ""}
+        <button type="button" class="btn btn-outline-danger" onclick="Swal.close(); logout();"><i class="fa-solid fa-right-from-bracket"></i> ออกจากระบบ</button>
+      </div>`,
+    showConfirmButton: false,
+    showCloseButton: true,
+    width: 360
+  });
+}
+
+// ⚠️ NEW: ฟังก์ชัน "รายงานผลการปฏิบัติงานของฉัน" — กรองเฉพาะรายงานที่ผู้ใช้ที่ล็อกอินอยู่เป็นผู้บันทึก
+function showMyReports() {
+  if (!userSession) { openLoginModal(); return; }
+  currentView = { type: "mine" };
+  setActiveNav("");
+  const mine = sortByDateDesc(allReports.filter(r => (r["อีเมลผู้บันทึก"] || "").toLowerCase() === (userSession.email || "").toLowerCase()));
+  document.getElementById("mainView").innerHTML = `
+    <div class="list-toolbar reveal"><h4><i class="fa-solid fa-folder-user" style="color:var(--navy-soft);margin-right:6px;"></i>รายงานผลการปฏิบัติงานของฉัน <span class="text-secondary" style="font-weight:400;font-size:.85rem;">(${mine.length} รายการ)</span></h4>
+    <a class="back-link" href="javascript:void(0)" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> กลับหน้าแรก</a></div>
+    <div class="report-grid">${mine.length ? mine.map(reportCardHtml).join("") : emptyStateHtml("คุณยังไม่เคยอัปโหลดรายงาน")}</div>`;
+  observeCovers();
+}
 
 function openUploadForm(editId) {
   if (!userSession) { openLoginModal(); return; }
@@ -1123,7 +1196,7 @@ async function saveReport() {
     // ⚠️ NEW: ส่ง totalChunks แนบไปด้วย เพื่อให้ backend ตรวจสอบว่าไฟล์ประกอบกลับมาครบทุกชิ้นจริง
     await callGas({ action: editId?"update":"create", token: userSession.token, id: editId||undefined, fullName, title, year, eventDate, subjectGroup, reportType, uploadId, totalChunks, fileMimeType: file?.type });
     bootstrap.Modal.getInstance(document.getElementById("reportFormModal"))?.hide(); await Swal.fire({ icon: "success", title: "สำเร็จ", showConfirmButton: false, timer: 1300 });
-    await loadReports(); if (currentView.type === "home") renderHome(); else if (currentView.type === "list") showListPage(currentView.filterKey, currentView.filterValue); else if (currentView.type === "category") showCategoryOverview(currentView.kind);
+    await loadReports(); refreshCurrentView();
   } catch (err) { Swal.fire({ icon: "error", title: "ผิดพลาด", text: err.message, confirmButtonColor: "#1C86EE" }); }
   finally { btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> บันทึก`; }
 }
@@ -1134,7 +1207,7 @@ async function deleteReport(id) {
   // ⚠️ FIX: เดิมไม่เช็คผลลัพธ์จาก fetch เลย ถ้า backend ปฏิเสธ (เช่นไม่มีสิทธิ์ หรือ session หมดอายุ)
   // ระบบจะขึ้น "ลบสำเร็จ" หลอกผู้ใช้ทั้งที่จริงไม่ได้ลบ
   try { await callGas({ action: "delete", token: userSession.token, id });
-    await Swal.fire({ icon: "success", title: "ลบสำเร็จ", showConfirmButton: false, timer: 1300 }); await loadReports(); renderHome();
+    await Swal.fire({ icon: "success", title: "ลบสำเร็จ", showConfirmButton: false, timer: 1300 }); await loadReports(); refreshCurrentView();
   } catch (err) { Swal.fire({ icon: "error", title: "ลบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
 }
 
