@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="description" content="ระบบจัดเก็บรายงานผลการปฏิบัติงาน Performance Reporting System โรงเรียนพิมานพิทยาสรรค์">
+<meta name="description" content="ระบบจัดเก็บรายงานผลการปฏิบัติงาน Performance Reporting System โรงเรียนพิมานพิทยาสรรค์ PHIMANPITTASAN SCHOOL">
 <meta name="theme-color" content="#FFFFFF">
 <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png">
 <title>ระบบจัดเก็บรายงานผลการปฏิบัติงาน (PRS)</title>
@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -22,26 +22,35 @@
    DESIGN TOKENS — iOS Style Identity (Solid Colors, Clean UI)
 ========================================================== */
 :root {
-  var(--color-pink): #FF1493;
-  --color-blue: #1C86EE;
-  --color-red: #CD0000;
-  --color-gray: #CFCFCF;
-  --color-dark: #1C1C1E;
-  
-  --paper: #F2F2F7; 
+  --color-pink: #FF1493;
+  --color-blue: #1E40AF;
+  --color-red: #DC2626;
+  --color-gray: #CBD5E1;
+  --color-dark: #0F172A;
+
+  /* ---- Reference tone: royal blue / slate SaaS identity ---- */
+  --navy: #1E40AF;
+  --navy-deep: #1E3A8A;
+  --navy-soft: #3B5BDB;
+  --gold: #1E40AF;
+  --gold-light: #3B5BDB;
+  --gold-ink: #334155;
+
+  --paper: #F8FAFC; 
   --paper-card: #FFFFFF;
-  --line: #E5E5EA;
-  --text: #1C1C1E;
-  --text-muted: #8E8E93;
-  --text-faint: #C7C7CC;
+  --line: #E2E8F0;
+  --text: #0F172A;
+  --text-muted: #64748B;
+  --text-faint: #94A3B8;
   
   --danger: var(--color-red);
   --radius-sm: 12px; 
-  --radius: 20px; 
+  --radius: 18px; 
   
-  --shadow-card: 0 4px 12px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Sarabun', sans-serif;
-  --font-body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Sarabun', sans-serif;
+  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.05);
+  --shadow-elevated: 0 20px 50px rgba(30, 64, 175, 0.16), 0 4px 12px rgba(30, 64, 175, 0.08);
+  --font-display: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
   --notice-offset: 0px;
 }
 
@@ -60,7 +69,7 @@ body {
 .d-none{ display:none !important; }
 a{ color:inherit; text-decoration: none; }
 button{ font-family:inherit; }
-:focus-visible{ outline:2px solid var(--color-blue); outline-offset:2px; border-radius:6px; }
+:focus-visible{ outline:2px solid var(--navy-soft); outline-offset:2px; border-radius:6px; }
 ::-webkit-scrollbar{ height:8px; width:8px; }
 ::-webkit-scrollbar-thumb{ background: var(--color-gray); border-radius:20px; }
 
@@ -80,31 +89,34 @@ button{ font-family:inherit; }
 }
 .loading-screen.fade-out{ opacity:0; pointer-events:none; }
 .loading-content{ display:flex; flex-direction:column; align-items:center; text-align:center; }
-.loading-seal{ width:78px; height:78px; margin-bottom:20px; object-fit:contain; border-radius:50%; background:var(--paper-card); padding:10px; box-shadow:0 0 30px rgba(0,0,0,.08); animation:floatSlow 2.4s ease-in-out infinite; }
-.loading-title{ font-family:var(--font-display); font-size:1.05rem; font-weight:600; color:var(--text); margin-bottom:20px; }
+.loading-seal{ width:78px; height:78px; margin-bottom:20px; object-fit:contain; border-radius:0; background:transparent; padding:0; box-shadow:none; animation:floatSlow 2.4s ease-in-out infinite; }
+.loading-title{ font-family:var(--font-display); font-size:1.08rem; font-weight:700; color:var(--navy); margin-bottom:20px; letter-spacing:.01em; }
 .loading-bar-container{ width:220px; height:5px; background:var(--line); border-radius:10px; overflow:hidden; }
-.loading-bar-progress{ width:40%; height:100%; background:var(--color-blue); border-radius:10px; animation:loadingMove 1.4s infinite ease-in-out; }
+.loading-bar-progress{ width:40%; height:100%; background:linear-gradient(90deg, var(--navy), var(--gold)); border-radius:10px; animation:loadingMove 1.4s infinite ease-in-out; }
 @keyframes loadingMove{ 0%{transform:translateX(-100%);} 100%{transform:translateX(220%);} }
 
 /* ---------- HEADER ---------- */
 .app-header{
   position:fixed; top:var(--notice-offset); left:0; right:0; z-index:1000; height:70px;
-  background: rgba(255, 255, 255, 0.85); 
-  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.88); 
+  backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%);
   display:flex; align-items:center; gap:12px; padding:0 14px;
   border-bottom: 1px solid var(--line);
+  box-shadow: 0 1px 0 var(--gold-light);
   transition:top .2s ease;
 }
-.logo-box img{ width:38px; height:38px; object-fit:contain; border-radius:50%; flex-shrink:0; }
+.logo-mark{ object-fit:contain; background:transparent; border-radius:0; box-shadow:none; padding:0; }
+.logo-box img{ width:38px; height:38px; flex-shrink:0; }
 .system-title{ display:none; white-space:nowrap; }
-.system-title h1{ font-family:var(--font-display); font-size:1.05rem; font-weight:700; margin:0; color:var(--text); }
-.system-title p{ font-size:.7rem; color:var(--text-muted); margin:0; }
+.system-title h1{ font-family:var(--font-display); font-size:1.08rem; font-weight:700; margin:0; color:var(--navy); letter-spacing:.01em; }
+.system-title p{ font-size:.68rem; color:var(--gold-ink); margin:0; font-weight:600; letter-spacing:.03em; }
+.system-title .school-name-image{ display:block; height:22px; width:auto; object-fit:contain; margin-top:2px; max-width:220px; }
 .search-box{
   flex:1; height:40px; background:rgba(142, 142, 147, 0.12);
   border-radius:12px; padding:0 12px; display:flex; align-items:center; gap:8px; color:var(--text);
   transition:background .18s ease, box-shadow .18s ease;
 }
-.search-box:focus-within{ background:rgba(142, 142, 147, 0.18); box-shadow:0 0 0 2px var(--color-blue); }
+.search-box:focus-within{ background:rgba(142, 142, 147, 0.18); box-shadow:0 0 0 2px var(--navy-soft); }
 .search-box i{ color:var(--text-muted); font-size:.85rem; }
 .search-box input{ background:transparent; border:none; outline:none; color:var(--text); width:100%; font-family:var(--font-body); font-size:.88rem; }
 .search-box input::placeholder{ color:var(--text-muted); }
@@ -115,6 +127,21 @@ button{ font-family:inherit; }
 }
 .header-btn:hover{ background:rgba(142, 142, 147, 0.2); }
 .header-btn:active{ transform:scale(.94); }
+
+.login-btn{
+  width:40px; height:40px; padding:0; border:none; border-radius:12px; flex-shrink:0;
+  background: linear-gradient(135deg, var(--navy), var(--navy-soft));
+  color:#fff; display:flex; align-items:center; justify-content:center; gap:8px;
+  font-size:1rem; font-weight:600; box-shadow:0 6px 16px rgba(30,64,175,.28);
+  transition:transform .15s ease, box-shadow .15s ease, width .2s ease, padding .2s ease;
+}
+.login-btn .login-label{ display:none; }
+.login-btn:hover{ transform:translateY(-1px); box-shadow:0 8px 20px rgba(30,64,175,.36); }
+.login-btn:active{ transform:scale(.96); }
+@media(min-width:576px){
+  .login-btn{ width:auto; padding:0 18px 0 16px; border-radius:999px; }
+  .login-btn .login-label{ display:inline; font-size:.86rem; white-space:nowrap; }
+}
 .user-chip{
   display:flex; align-items:center; gap:6px; height:40px; padding:0 8px 0 4px; border-radius:12px;
   background:rgba(142, 142, 147, 0.12); color:var(--text); cursor:pointer; flex-shrink:0; max-width:140px;
@@ -130,6 +157,7 @@ button{ font-family:inherit; }
   .system-title{ display:block; margin-right:20px; }
   .system-title h1{ font-size:1.28rem; }
   .system-title p{ font-size:.76rem; }
+  .system-title .school-name-image{ height:28px; max-width:260px; }
   .search-box{ max-width:560px; height:44px; }
   .header-btn, .user-chip{ height:44px; }
 }
@@ -143,7 +171,7 @@ button{ font-family:inherit; }
 .type-row{ margin-bottom:30px; }
 .row-header{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; gap:10px; }
 .row-header h5{ font-family:var(--font-display); font-size:1.08rem; font-weight:700; margin:0; color:var(--text); }
-.row-header a{ font-size:.8rem; color:var(--color-blue); font-weight:600; }
+.row-header a{ font-size:.8rem; color:var(--navy-soft); font-weight:600; }
 .scroll-row{ display:flex; gap:16px; overflow-x:auto; padding:4px 4px 16px; scroll-snap-type:x proximity; align-items:flex-start; }
 .scroll-row::-webkit-scrollbar{ height:6px; }
 
@@ -174,7 +202,7 @@ button{ font-family:inherit; }
 .card-cover {
   height: 490px; 
   position: relative; 
-  overflow: hidden; 
+  overflow: visible; 
   background: #E5E5EA;
   transition: height 0.3s ease;
 }
@@ -197,7 +225,7 @@ button{ font-family:inherit; }
 /* ---------- กล่องชื่อรายงาน (พื้นหลังสีขาว + ขอบสีแดง) ---------- */
 .card-cover .cover-title-overlay {
   position: absolute; 
-  bottom: 12px; 
+  bottom: -14px; 
   left: 50%; 
   transform: translateX(-50%); 
   z-index: 2; 
@@ -205,8 +233,8 @@ button{ font-family:inherit; }
   /* พื้นหลังสีขาว */
   background: #FFFFFF; 
   
-  /* เส้นขอบสีแดง */
-  border: 2px solid var(--color-red); 
+  /* ขอบขาวหนา สไตล์ Badge ลอยทับขอบภาพ */
+  border: 2px solid #FFFFFF; 
   
   /* ขอบมนแบบแคปซูล 100% */
   border-radius: 999px; 
@@ -219,7 +247,8 @@ button{ font-family:inherit; }
   text-align: center; 
   
   /* สีตัวอักษรเข้ม เพื่อให้อ่านง่ายบนพื้นหลังขาว */
-  color: var(--color-dark); 
+  color: var(--navy); 
+  font-family: var(--font-display);
   font-size: 0.85rem; 
   font-weight: 700; 
   line-height: 1.4; 
@@ -228,10 +257,10 @@ button{ font-family:inherit; }
   -webkit-line-clamp: 2; 
   -webkit-box-orient: vertical; 
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 14px rgba(30,64,175,0.18);
 }
 
-.report-card .card-body { padding: 14px 18px 18px; }
+.report-card .card-body { padding: 26px 18px 18px; }
 .report-card .card-sub { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
 .report-card .card-sub::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 .report-card .card-date { font-size: 0.75rem; color: var(--text-faint); margin-top: 4px; }
@@ -255,7 +284,7 @@ button{ font-family:inherit; }
 /* ---------- GRID (List Page) ---------- */
 .list-toolbar{ display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; flex-wrap:wrap; gap:10px; }
 .list-toolbar h4{ font-family:var(--font-display); font-size:1.1rem; font-weight:700; margin:0; color:var(--text); }
-.back-link{ font-size:.85rem; color:var(--color-blue); font-weight:600; }
+.back-link{ font-size:.85rem; color:var(--navy-soft); font-weight:600; }
 
 .report-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:20px; align-items:flex-start; }
 @media (min-width: 820px) { .report-grid .report-card.is-landscape { grid-column: span 2; } }
@@ -263,13 +292,13 @@ button{ font-family:inherit; }
 /* ---------- BUTTONS ---------- */
 .btn{ transition:transform .15s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease; border-radius:12px; font-weight:600; }
 .btn:active{ transform:scale(.97); }
-.btn-primary{ background:var(--color-blue); border:none; box-shadow:0 4px 12px rgba(28,134,238,.3); color: #fff; }
-.btn-primary:hover, .btn-primary:focus{ background:#1874CF; box-shadow:0 6px 16px rgba(28,134,238,.4); transform:translateY(-1px); color: #fff; }
+.btn-primary{ background:linear-gradient(135deg, var(--navy), var(--navy-soft)); border:none; box-shadow:0 4px 12px rgba(30,64,175,.28); color: #fff; }
+.btn-primary:hover, .btn-primary:focus{ background:linear-gradient(135deg, var(--navy-deep), var(--navy)); box-shadow:0 6px 18px rgba(30,64,175,.38); transform:translateY(-1px); color: #fff; }
 .btn-outline-secondary{ border-color:var(--line); color:var(--text-muted); }
 .btn-outline-secondary:hover{ background:var(--paper); border-color:var(--text-muted); color:var(--text); }
 .btn-danger{ background:var(--danger); border-color:var(--danger); box-shadow:0 4px 12px rgba(205,0,0,.3); color: #fff; }
 .btn-danger:hover{ background:#A60000; border-color:#A60000; color: #fff; transform:translateY(-1px); }
-.form-control:focus, .form-select:focus{ border-color:var(--color-blue); box-shadow:0 0 0 .2rem rgba(28,134,238,.2); }
+.form-control:focus, .form-select:focus{ border-color:var(--navy-soft); box-shadow:0 0 0 .2rem rgba(30,64,175,.14); }
 .form-control, .form-select{ border-color:var(--line); border-radius:10px; transition:border-color .15s ease, box-shadow .15s ease; }
 
 /* ---------- MODALS ---------- */
@@ -279,6 +308,78 @@ button{ font-family:inherit; }
 @keyframes shakeInvalid{ 0%,100%{ transform:translateX(0); } 25%{ transform:translateX(-4px); } 75%{ transform:translateX(4px); } }
 .modal-content{ border-radius:24px; border:none; box-shadow: 0 24px 48px rgba(0,0,0,.15); }
 .modal-title{ font-family:var(--font-display); font-weight:700; color:var(--text); }
+
+/* ---------- DETAIL VIEW (executive presentation) ---------- */
+#detailModal .modal-content{ overflow:hidden; }
+#detailModal .modal-body, #detailModal .modal-footer{ padding:0; border:none; }
+.detail-hero{
+  position:relative; padding:34px 28px 26px; color:#fff; overflow:hidden;
+  background: radial-gradient(120% 140% at 100% 0%, var(--navy-soft) 0%, var(--navy) 46%, var(--navy-deep) 100%);
+}
+.detail-hero::before{
+  content:""; position:absolute; inset:0; opacity:.12; pointer-events:none;
+  background-image: repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 26px);
+}
+.detail-hero::after{ content:""; position:absolute; left:28px; right:28px; bottom:0; height:3px; background:linear-gradient(90deg, var(--gold-light), transparent 85%); }
+.detail-hero-icon{
+  width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center;
+  background:rgba(255,255,255,.12); border:1px solid rgba(59,91,219,.55); color:var(--gold-light);
+  font-size:1.35rem; margin-bottom:16px; position:relative; z-index:1;
+}
+.detail-eyebrow{ font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-light); font-weight:700; margin-bottom:8px; position:relative; z-index:1; }
+.detail-hero-title{ font-family:var(--font-display); font-size:1.28rem; font-weight:700; line-height:1.4; margin:0 0 16px; position:relative; z-index:1; }
+.detail-badges{ display:flex; flex-wrap:wrap; gap:8px; position:relative; z-index:1; }
+.detail-badge{
+  display:inline-flex; align-items:center; gap:6px; padding:5px 13px; border-radius:999px; font-size:.74rem; font-weight:600;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.22); color:#fff; backdrop-filter:blur(4px);
+}
+.detail-badge i{ font-size:.68rem; color:var(--gold-light); }
+.detail-body-panel{ padding:24px 26px 8px; }
+.detail-meta-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px 14px; margin-bottom:6px; }
+.detail-meta-item{ display:flex; gap:11px; align-items:flex-start; }
+.detail-meta-icon{
+  width:36px; height:36px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  background:var(--paper); color:var(--navy-soft); font-size:.9rem; border:1px solid var(--line);
+}
+.detail-meta-label{ font-size:.7rem; color:var(--text-muted); font-weight:600; letter-spacing:.02em; margin-bottom:1px; }
+.detail-meta-value{ font-size:.88rem; color:var(--text); font-weight:600; line-height:1.35; }
+.detail-cta-wrap{ padding:18px 26px 26px; }
+.detail-cta{
+  display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:14px; border-radius:14px;
+  background:linear-gradient(135deg, var(--gold-light), var(--gold)); color:#fff; font-weight:700; font-size:.95rem;
+  box-shadow:0 10px 24px rgba(30,64,175,.32); border:none; transition:transform .15s ease, box-shadow .15s ease;
+}
+.detail-cta:hover{ transform:translateY(-2px); box-shadow:0 14px 28px rgba(30,64,175,.4); color:#fff; }
+.detail-footer-actions{ display:flex; gap:10px; padding:0 26px 22px; }
+.detail-footer-actions .btn{ flex:1; }
+@media(max-width:420px){ .detail-meta-grid{ grid-template-columns:1fr; } }
+
+/* ---------- UPLOAD FORM (sectioned, executive styling) ---------- */
+#reportFormModal .modal-header{
+  background:linear-gradient(135deg, var(--navy), var(--navy-soft)); border:none; padding:20px 26px;
+}
+#reportFormModal .modal-title{ color:#fff; display:flex; align-items:center; gap:10px; }
+#reportFormModal .modal-title i{ color:var(--gold-light); }
+#reportFormModal .btn-close{ filter:invert(1) brightness(2); opacity:.85; }
+#reportFormModal .modal-body{ padding:24px 26px 8px; background:var(--paper); }
+.form-section{ background:var(--paper-card); border:1px solid var(--line); border-radius:16px; padding:18px 18px 6px; margin-bottom:16px; }
+.form-section-title{
+  display:flex; align-items:center; gap:9px; font-size:.78rem; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+  color:var(--navy-soft); margin-bottom:14px;
+}
+.form-section-title i{ width:26px; height:26px; border-radius:8px; background:var(--paper); display:flex; align-items:center; justify-content:center; font-size:.78rem; color:var(--gold-ink); border:1px solid var(--line); }
+.file-dropzone{
+  position:relative; border:1.5px dashed var(--text-faint); border-radius:14px; padding:22px 16px; text-align:center;
+  background:var(--paper); transition:border-color .15s ease, background .15s ease;
+}
+.file-dropzone:hover{ border-color:var(--navy-soft); background:#F5F7FB; }
+.file-dropzone:has(input.is-invalid){ border-color:var(--danger); background:#FFF4F4; animation:shakeInvalid .35s ease; }
+.file-dropzone.has-file{ border-style:solid; border-color:var(--gold-light); background:#EEF2FF; }
+.file-dropzone i{ font-size:1.5rem; color:var(--gold-ink); margin-bottom:8px; display:block; }
+.file-dropzone .fd-title{ font-size:.85rem; font-weight:600; color:var(--text); }
+.file-dropzone .fd-sub{ font-size:.72rem; color:var(--text-muted); margin-top:2px; }
+.file-dropzone input[type="file"]{ position:absolute; inset:0; opacity:0; cursor:pointer; }
+#pdfPreview:not(:empty){ background:#F5F7FB; border:1px solid var(--line); border-radius:10px; padding:8px 12px; font-weight:600; }
 
 /* ---------- LINE notice ---------- */
 .line-notice{
@@ -314,7 +415,7 @@ button{ font-family:inherit; }
 .dock-item i{ font-size:1.15rem; }
 .dock-item .dock-label{ display:none; }
 .dock-item:hover{ background: rgba(0, 0, 0, 0.05); color: var(--text); }
-.dock-item.active{ background: rgba(0, 0, 0, 0.08); color: var(--color-blue); }
+.dock-item.active{ background: rgba(0, 0, 0, 0.08); color: var(--navy); }
 .dock-divider{ width:1px; align-self:stretch; margin:6px 4px; background:var(--line); flex-shrink:0; }
 
 @media(min-width:992px){
@@ -334,9 +435,9 @@ button{ font-family:inherit; }
 .dock-flyout.show{ display:block; animation:flyoutIn .16s ease; }
 @keyframes flyoutIn{ from{ opacity:0; transform:translate(-50%,8px); } to{ opacity:1; transform:translate(-50%,0); } }
 .dock-flyout .flyout-title{ font-family:var(--font-display); font-size:.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; padding:4px 8px 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
-.dock-flyout .flyout-title .flyout-all{ text-transform:none; letter-spacing:0; font-size:.74rem; color:var(--color-blue); font-weight:700; cursor:pointer; }
+.dock-flyout .flyout-title .flyout-all{ text-transform:none; letter-spacing:0; font-size:.74rem; color:var(--navy-soft); font-weight:700; cursor:pointer; }
 .dock-flyout a{ display:flex; align-items:center; gap:9px; padding:10px 12px; color:var(--text); text-decoration:none; font-size:.88rem; border-radius:12px; font-weight: 500; }
-.dock-flyout a::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--item-color,var(--color-blue)); flex-shrink:0; }
+.dock-flyout a::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--item-color,var(--navy-soft)); flex-shrink:0; }
 .dock-flyout a:hover{ background: rgba(0, 0, 0, 0.05); }
 @media(min-width:992px){ .dock-flyout{ bottom:100px; } }
 
@@ -344,7 +445,7 @@ button{ font-family:inherit; }
 .fab-wrap{ position:fixed; right:18px; bottom:calc(96px + env(safe-area-inset-bottom)); z-index:1050; }
 .fab-btn{
   width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
-  background: var(--color-blue); color:#fff; font-size:1.3rem; box-shadow:0 10px 24px rgba(28,134,238,.4);
+  background: linear-gradient(135deg, var(--navy), var(--navy-soft)); color:#fff; font-size:1.3rem; box-shadow:0 10px 24px rgba(30,64,175,.4), 0 0 0 3px rgba(59,91,219,.35);
   display:flex; align-items:center; justify-content:center;
   transition:transform .28s cubic-bezier(.34,1.56,.64,1), background .2s ease;
 }
@@ -384,24 +485,26 @@ button{ font-family:inherit; }
 
 <div id="loadingScreen" class="loading-screen">
   <div class="loading-content">
-    <img class="loading-seal" src="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png" alt="ตราโรงเรียน">
-    <div class="loading-title">ระบบจัดเก็บรายงานผลการปฏิบัติงาน</div>
+    <img class="loading-seal logo-mark" src="https://img1.pic.in.th/images/logoPS.png" alt="ตราโรงเรียน">
+    <div class="loading-title">ระบบจัดเก็บรายงานผลการปฏิบัติงาน </div>
+    <div class="loading-title">Performance Reporting System</div>
     <div class="loading-bar-container"><div class="loading-bar-progress"></div></div>
   </div>
 </div>
 
 <header class="app-header">
-  <div class="logo-box"><img src="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png" alt="ตราโรงเรียนพิมานพิทยาสรรค์"></div>
+  <div class="logo-box"><img class="logo-mark" src="https://img1.pic.in.th/images/logoPS.png" alt="ตราโรงเรียนพิมานพิทยาสรรค์"></div>
   <div class="system-title">
     <h1>ระบบจัดเก็บรายงานผลการปฏิบัติงาน</h1>
-    <p>โรงเรียนพิมานพิทยาสรรค์</p>
+    <p>โรงเรียนพิมานพิทยาสรรค์ PHIMANPITTASAN SCHOOL</p>
   </div>
   <div class="search-box">
     <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
     <input id="searchInput" type="text" placeholder="ค้นหาชื่อรายงาน / ชื่อผู้บันทึก..." aria-label="ค้นหารายงาน" onkeyup="onSearchKeyup(event)">
   </div>
-  <button id="loginBtn" class="header-btn" onclick="openLoginModal()" title="เข้าสู่ระบบ" aria-label="เข้าสู่ระบบ">
+  <button id="loginBtn" class="login-btn" onclick="openLoginModal()" title="เข้าสู่ระบบ" aria-label="เข้าสู่ระบบ">
     <i class="fa-brands fa-google" aria-hidden="true"></i>
+    <span class="login-label">เข้าสู่ระบบ</span>
   </button>
   <div id="userChip" class="user-chip d-none" onclick="openUserMenu()" role="button" tabindex="0" onkeydown="if(event.key==='Enter')openUserMenu()" aria-label="เมนูผู้ใช้">
     <img id="userAvatar" src="" alt="">
@@ -448,42 +551,58 @@ button{ font-family:inherit; }
   <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="reportFormTitle">เพิ่มรายงานผลการปฏิบัติงาน</h5>
+        <h5 class="modal-title" id="reportFormTitle"><i class="fa-solid fa-file-circle-plus"></i> เพิ่มรายงานผลการปฏิบัติงาน</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
       </div>
       <div class="modal-body">
         <form id="reportForm" onsubmit="return false;">
           <input type="hidden" id="reportEditId" value="">
-          <div class="mb-3">
-            <label class="form-label" for="reportFullName">ชื่อ-สกุล ผู้บันทึก</label>
-            <input type="text" class="form-control" id="reportFullName" placeholder="เช่น นายสมชาย ใจดี">
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="reportTitle">ชื่อรายงาน</label>
-            <input type="text" class="form-control" id="reportTitle" placeholder="ระบุชื่อรายงาน">
-          </div>
-          <div class="row">
-            <div class="col-6 mb-3">
-              <label class="form-label" for="reportYear">ปีการศึกษา</label>
-              <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="form-control" id="reportYear" placeholder="เช่น 2568" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-            </div>
-            <div class="col-6 mb-3">
-              <label class="form-label" for="reportDate">วันที่ปฏิบัติงาน</label>
-              <input type="date" class="form-control" id="reportDate">
+
+          <div class="form-section">
+            <div class="form-section-title"><i class="fa-solid fa-user-tie"></i> ผู้บันทึกรายงาน</div>
+            <div class="mb-3">
+              <label class="form-label" for="reportFullName">ชื่อ-สกุล ผู้บันทึก</label>
+              <input type="text" class="form-control" id="reportFullName" placeholder="เช่น นายสมชาย ใจดี">
             </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label" for="reportSubject">กลุ่มสาระการเรียนรู้</label>
-            <select class="form-select" id="reportSubject"></select>
+
+          <div class="form-section">
+            <div class="form-section-title"><i class="fa-solid fa-file-lines"></i> รายละเอียดรายงาน</div>
+            <div class="mb-3">
+              <label class="form-label" for="reportTitle">ชื่อรายงาน</label>
+              <input type="text" class="form-control" id="reportTitle" placeholder="ระบุชื่อรายงาน">
+            </div>
+            <div class="row">
+              <div class="col-6 mb-3">
+                <label class="form-label" for="reportYear">ปีการศึกษา</label>
+                <input type="text" inputmode="numeric" pattern="[0-9]*" maxlength="4" class="form-control" id="reportYear" placeholder="เช่น 2568" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+              </div>
+              <div class="col-6 mb-3">
+                <label class="form-label" for="reportDate">วันที่ปฏิบัติงาน</label>
+                <input type="date" class="form-control" id="reportDate">
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="reportSubject">กลุ่มสาระการเรียนรู้</label>
+              <select class="form-select" id="reportSubject"></select>
+            </div>
+            <div class="mb-1">
+              <label class="form-label" for="reportType">ประเภทรายงาน</label>
+              <select class="form-select" id="reportType"></select>
+            </div>
           </div>
-          <div class="mb-3">
-            <label class="form-label" for="reportType">ประเภทรายงาน</label>
-            <select class="form-select" id="reportType"></select>
-          </div>
-          <div class="mb-2">
-            <label class="form-label" for="reportFile">ไฟล์รายงาน (PDF เท่านั้น ไม่เกิน 50MB)</label>
-            <input type="file" class="form-control" id="reportFile" accept="application/pdf" onchange="previewPDFName()">
-            <div id="pdfPreview" class="mt-2 small text-secondary"></div>
+
+          <div class="form-section">
+            <div class="form-section-title"><i class="fa-solid fa-paperclip"></i> แนบไฟล์รายงาน</div>
+            <div class="mb-2">
+              <label class="file-dropzone" for="reportFile" id="fileDropzone">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <div class="fd-title">คลิกเพื่อเลือกไฟล์ หรือวางไฟล์ที่นี่</div>
+                <div class="fd-sub">รองรับเฉพาะไฟล์ PDF ขนาดไม่เกิน 50MB</div>
+                <input type="file" id="reportFile" accept="application/pdf" onchange="previewPDFName()">
+              </label>
+              <div id="pdfPreview" class="mt-2 small text-secondary"></div>
+            </div>
           </div>
         </form>
       </div>
@@ -498,12 +617,9 @@ button{ font-family:inherit; }
 <div class="modal fade" id="detailModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">รายละเอียดรายงาน</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
-      </div>
+      <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="ปิด" style="position:absolute; top:16px; right:16px; z-index:2; opacity:.85;"></button>
       <div class="modal-body" id="detailBody"></div>
-      <div class="modal-footer" id="detailFooter"></div>
+      <div class="modal-footer d-block" id="detailFooter"></div>
     </div>
   </div>
 </div>
@@ -532,7 +648,7 @@ button{ font-family:inherit; }
 /* ==========================================================
    ⚠️ ตั้งค่าให้ตรงกับของจริงก่อนใช้งาน
 ========================================================== */
-const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzybcfUdipmaq-8t7DwwXJTiqh9sBP8auDP9PoB0sXNOYixzTfsE8hfCy568lu43a-o/exec";
+const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbybe8JCdZo4H_h1eGVDp8I8Z3MacuxatE6K433FpWRLaJf4xtzpkvbbyo6mSUoLH7JV/exec";
 const GOOGLE_CLIENT_ID = "857339235853-gbd7aip7ktrl2ot025q6judnvvdmfoa9.apps.googleusercontent.com";
 const ALLOWED_DOMAIN = "phiman.ac.th";
 
@@ -668,8 +784,10 @@ function fabAction(action) {
 
 async function loadReports() {
   try {
-    const res = await fetch(GAS_WEB_APP_URL); if (!res.ok) throw new Error("Server Error");
-    allReports = (await res.json()).reports || []; lastLoadFailed = false;
+    const res = await fetch(GAS_WEB_APP_URL);
+    if (!res.ok) throw new Error("Server Error " + res.status);
+    const data = await res.json();
+    allReports = data.reports || []; lastLoadFailed = false;
   } catch (err) { allReports = []; lastLoadFailed = true; }
 }
 
@@ -835,29 +953,138 @@ function onSearchKeyup(e) {
 function openDetail(id) {
   const r = allReports.find(x => x["รหัส"] === id); if (!r) return;
   const owner = userSession && (userSession.role === "super" || (userSession.email||"").toLowerCase() === (r["อีเมลผู้บันทึก"]||"").toLowerCase());
-  document.getElementById("detailBody").innerHTML = `<p class="mb-2"><strong>รหัส:</strong> ${escapeHtml(r["รหัส"])}</p><p class="mb-2"><strong>ชื่อรายงาน:</strong> ${escapeHtml(r["ชื่อรายงาน"] || "-")}</p><p class="mb-2"><strong>ประเภทรายงาน:</strong> ${escapeHtml(r["ประเภทรายงาน"] || "-")}</p><p class="mb-2"><strong>กลุ่มสาระการเรียนรู้:</strong> ${escapeHtml(r["กลุ่มสาระการเรียนรู้"] || "-")}</p><p class="mb-2"><strong>ปีการศึกษา:</strong> ${escapeHtml(r["ปีการศึกษา"] || "-")}</p><p class="mb-2"><strong>วันที่ปฏิบัติงาน:</strong> ${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</p><p class="mb-2"><strong>ผู้บันทึก:</strong> ${escapeHtml(r["ชื่อ-สกุล"] || "-")}</p><p class="mb-0"><a class="btn btn-primary w-100 mt-2" target="_blank" rel="noopener noreferrer" href="${encodeURI(r["ลิงก์ไฟล์รายงาน"]||"#")}"><i class="fa-solid fa-file-pdf"></i> เปิดไฟล์รายงาน (PDF)</a></p>`;
-  document.getElementById("detailFooter").innerHTML = owner ? `<button class="btn btn-outline-secondary" onclick="closeDetailThen(() => openUploadForm('${escAttr(r["รหัส"])}'))"><i class="fa-solid fa-pen"></i> แก้ไข</button><button class="btn btn-danger" onclick="confirmDelete('${escAttr(r["รหัส"])}')"><i class="fa-solid fa-trash"></i> ลบ</button>` : "";
+
+  document.getElementById("detailBody").innerHTML = `
+    <div class="detail-hero">
+      <div class="detail-hero-icon"><i class="fa-solid fa-file-shield"></i></div>
+      <div class="detail-eyebrow">รายงานผลการปฏิบัติงาน</div>
+      <h4 class="detail-hero-title">${escapeHtml(r["ชื่อรายงาน"] || "-")}</h4>
+      <div class="detail-badges">
+        <span class="detail-badge"><i class="fa-solid fa-layer-group"></i>${escapeHtml(r["ประเภทรายงาน"] || "-")}</span>
+        <span class="detail-badge"><i class="fa-solid fa-book"></i>${escapeHtml(r["กลุ่มสาระการเรียนรู้"] || "-")}</span>
+      </div>
+    </div>
+    <div class="detail-body-panel">
+      <div class="detail-meta-grid">
+        <div class="detail-meta-item">
+          <div class="detail-meta-icon"><i class="fa-solid fa-calendar-day"></i></div>
+          <div><div class="detail-meta-label">ปีการศึกษา</div><div class="detail-meta-value">${escapeHtml(r["ปีการศึกษา"] || "-")}</div></div>
+        </div>
+        <div class="detail-meta-item">
+          <div class="detail-meta-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div><div class="detail-meta-label">วันที่ปฏิบัติงาน</div><div class="detail-meta-value">${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</div></div>
+        </div>
+        <div class="detail-meta-item" style="grid-column:1 / -1;">
+          <div class="detail-meta-icon"><i class="fa-solid fa-user-tie"></i></div>
+          <div><div class="detail-meta-label">ผู้บันทึกรายงาน</div><div class="detail-meta-value">${escapeHtml(r["ชื่อ-สกุล"] || "-")}</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="detail-cta-wrap">
+      <a class="detail-cta" target="_blank" rel="noopener noreferrer" href="${encodeURI(r["ลิงก์ไฟล์รายงาน"]||"#")}"><i class="fa-solid fa-file-pdf"></i> เปิดไฟล์รายงานฉบับเต็ม (PDF)</a>
+    </div>`;
+
+  document.getElementById("detailFooter").innerHTML = owner ? `<div class="detail-footer-actions"><button class="btn btn-outline-secondary" onclick="closeDetailThen(() => openUploadForm('${escAttr(r["รหัส"])}'))"><i class="fa-solid fa-pen"></i> แก้ไข</button><button class="btn btn-danger" onclick="confirmDelete('${escAttr(r["รหัส"])}')"><i class="fa-solid fa-trash"></i> ลบ</button></div>` : "";
   new bootstrap.Modal(document.getElementById("detailModal")).show();
 }
 function closeDetailThen(cb) { bootstrap.Modal.getInstance(document.getElementById("detailModal"))?.hide(); setTimeout(cb, 300); }
 
 /* AUTH & UPLOAD & ADMIN */
-function initGoogleSignIn() { google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: async (res) => { Swal.update({ html: `<div class="spinner-border text-primary"></div><p class="mt-2 small">กำลังตรวจสอบบัญชี...</p>` }); try { const response = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "googleLogin", idToken: res.credential }) }); const result = await response.json(); if (result.status !== "success") throw new Error(result.message); userSession = { token: result.token, ...result.user }; localStorage.setItem("prs_session", JSON.stringify(userSession)); updateAuthUI(); Swal.fire({ icon: "success", title: "เข้าสู่ระบบสำเร็จ", showConfirmButton: false, timer: 1200 }); } catch (err) { Swal.fire({ icon: "error", title: "เข้าสู่ระบบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); } } }); }
-function openLoginModal() { Swal.fire({ title: "เข้าสู่ระบบ", html: `<p class="text-secondary" style="font-size:.85rem;">เข้าสู่ระบบด้วยบัญชี Google ของโรงเรียน</p><div id="gsiBtnContainer" style="display:flex;justify-content:center;margin-top:10px;"></div>`, showConfirmButton: false, showCloseButton: true, didOpen: () => { if (!window.google || !google.accounts) return; google.accounts.id.renderButton(document.getElementById("gsiBtnContainer"), { theme: "outline", size: "large", text: "signin_with", shape: "pill", width: 260 }); } }); }
-function restoreSession() { try { const raw = localStorage.getItem("prs_session"); if (raw) userSession = JSON.parse(raw); } catch (e) { userSession = null; localStorage.removeItem("prs_session"); } }
+function initGoogleSignIn() {
+  google.accounts.id.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    callback: async (res) => {
+      Swal.update({ html: `<div class="spinner-border text-primary"></div><p class="mt-2 small">กำลังตรวจสอบบัญชี...</p>` });
+      try {
+        const result = await callGas({ action: "googleLogin", idToken: res.credential });
+        // ⚠️ NEW: เก็บเวลาหมดอายุของ session ไว้ฝั่ง client ด้วย (backend cache token ไว้ 6 ชม.)
+        // เพื่อให้ restoreSession() รู้ตัวเองว่าเซสชันหมดอายุแล้ว แทนที่จะพยายามใช้ token
+        // ที่หมดอายุไปเรื่อยๆ จนกว่าจะเจอ error จากการเรียก API ครั้งถัดไป
+        const expiresAt = Date.now() + ((result.expiresInSec || 6*60*60) * 1000);
+        userSession = { token: result.token, expiresAt, ...result.user };
+        localStorage.setItem("prs_session", JSON.stringify(userSession));
+        updateAuthUI();
+        Swal.fire({ icon: "success", title: "เข้าสู่ระบบสำเร็จ", showConfirmButton: false, timer: 1200 });
+      } catch (err) { Swal.fire({ icon: "error", title: "เข้าสู่ระบบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
+    }
+  });
+}
+function openLoginModal() {
+  Swal.fire({
+    html: `
+      <div style="margin:-4px -4px 18px;">
+        <img class="logo-mark" src="https://raw.githubusercontent.com/phiman-2026/picture/main/logo%20phiman.png" alt="ตราโรงเรียน" style="width:56px;height:56px;object-fit:contain;margin-bottom:12px;">
+        <h5 style="font-family:var(--font-display);font-weight:700;color:var(--navy);margin:0 0 4px;">เข้าสู่ระบบ</h5>
+        <p class="text-secondary mb-0" style="font-size:.85rem;">ระบบจัดเก็บรายงานผลการปฏิบัติงาน<br>โรงเรียนพิมานพิทยาสรรค์ PHIMANPITTASAN SCHOOL</p>
+      </div>
+      <div id="gsiBtnContainer" style="display:flex;justify-content:center;margin-top:6px;"></div>
+      <p class="text-secondary mt-3 mb-0" style="font-size:.72rem;">รองรับเฉพาะบัญชี Google ของโรงเรียนเท่านั้น</p>
+    `,
+    showConfirmButton: false,
+    showCloseButton: true,
+    width: 360,
+    padding: "28px 24px 22px",
+    didOpen: () => { if (!window.google || !google.accounts) return; google.accounts.id.renderButton(document.getElementById("gsiBtnContainer"), { theme: "outline", size: "large", text: "signin_with", shape: "pill", width: 260 }); }
+  });
+}
+function restoreSession() {
+  try {
+    const raw = localStorage.getItem("prs_session");
+    if (!raw) return;
+    const session = JSON.parse(raw);
+    // ⚠️ NEW: ถ้าเซสชันหมดอายุไปแล้วตามเวลาที่บันทึกไว้ (sessions เก่าก่อนแก้ไขจะไม่มี expiresAt ซึ่งถือว่ายังไม่หมดอายุ
+    // เพื่อไม่ให้ผู้ใช้ที่ล็อกอินค้างอยู่ก่อนอัปเดตต้องล็อกอินใหม่ทันที แต่ server จะปฏิเสธเองถ้า cache หมดอายุจริง)
+    if (session.expiresAt && Date.now() > session.expiresAt) {
+      localStorage.removeItem("prs_session");
+      userSession = null;
+      return;
+    }
+    userSession = session;
+  } catch (e) { userSession = null; localStorage.removeItem("prs_session"); }
+}
 function logout() { userSession = null; localStorage.removeItem("prs_session"); updateAuthUI(); }
 function updateAuthUI() { const loginBtn = document.getElementById("loginBtn"), userChip = document.getElementById("userChip"); if (userSession) { loginBtn.classList.add("d-none"); userChip.classList.remove("d-none"); document.getElementById("userAvatar").src = userSession.picture || ""; document.getElementById("userNameLabel").textContent = userSession.name || userSession.email; } else { loginBtn.classList.remove("d-none"); userChip.classList.add("d-none"); } }
 function openUserMenu() { const isSuper = userSession && userSession.role === "super"; Swal.fire({ title: userSession.name || userSession.email, html: `<p class="small text-secondary mb-3">${escapeHtml(userSession.email || "")}</p>`, showCancelButton: true, showConfirmButton: true, confirmButtonText: isSuper ? "จัดการแอดมินใหญ่" : "ออกจากระบบ", cancelButtonText: isSuper ? "ออกจากระบบ" : "ปิด", confirmButtonColor: "#1C86EE", cancelButtonColor: "#CFCFCF" }).then(res => { if (res.isConfirmed) { if (isSuper) openAdminModal(); else logout(); } else if (res.dismiss === Swal.DismissReason.cancel && isSuper) logout(); }); }
 
 function openUploadForm(editId) {
   if (!userSession) { openLoginModal(); return; }
-  document.getElementById("reportForm").reset(); document.getElementById("pdfPreview").innerHTML = ""; document.getElementById("reportEditId").value = "";
+  document.getElementById("reportForm").reset(); document.getElementById("pdfPreview").innerHTML = ""; document.getElementById("reportEditId").value = ""; document.getElementById("fileDropzone").classList.remove("has-file");
   ["reportFullName","reportTitle","reportYear","reportDate","reportSubject","reportType","reportFile"].forEach(id => document.getElementById(id).classList.remove("is-invalid"));
   if (editId) {
     const r = allReports.find(x => x["รหัส"] === editId); if (!r) return;
-    document.getElementById("reportFormTitle").textContent = "แก้ไขรายงานผลการปฏิบัติงาน"; document.getElementById("reportEditId").value = editId; document.getElementById("reportFullName").value = r["ชื่อ-สกุล"] || ""; document.getElementById("reportTitle").value = r["ชื่อรายงาน"] || ""; document.getElementById("reportYear").value = r["ปีการศึกษา"] || ""; document.getElementById("reportDate").value = (r["วันที่ปฏิบัติงาน"]||"").match(/^(\d{4})-(\d{2})-(\d{2})/) ? (r["วันที่ปฏิบัติงาน"]||"").match(/^(\d{4})-(\d{2})-(\d{2})/)[0] : ""; document.getElementById("reportSubject").value = r["กลุ่มสาระการเรียนรู้"] || ""; document.getElementById("reportType").value = r["ประเภทรายงาน"] || "";
-  } else { document.getElementById("reportFormTitle").textContent = "เพิ่มรายงานผลการปฏิบัติงาน"; document.getElementById("reportFullName").value = userSession.name || ""; }
+    // ⚠️ FIX: เดิมเรียก .match() ซ้ำ 2 ครั้งกับ string เดียวกันโดยไม่จำเป็น เก็บผลลัพธ์ไว้ในตัวแปรครั้งเดียวแทน
+    const dateMatch = (r["วันที่ปฏิบัติงาน"]||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
+    document.getElementById("reportFormTitle").innerHTML = '<i class="fa-solid fa-pen"></i> แก้ไขรายงานผลการปฏิบัติงาน'; document.getElementById("reportEditId").value = editId; document.getElementById("reportFullName").value = r["ชื่อ-สกุล"] || ""; document.getElementById("reportTitle").value = r["ชื่อรายงาน"] || ""; document.getElementById("reportYear").value = r["ปีการศึกษา"] || ""; document.getElementById("reportDate").value = dateMatch ? dateMatch[0] : ""; document.getElementById("reportSubject").value = r["กลุ่มสาระการเรียนรู้"] || ""; document.getElementById("reportType").value = r["ประเภทรายงาน"] || "";
+  } else { document.getElementById("reportFormTitle").innerHTML = '<i class="fa-solid fa-file-circle-plus"></i> เพิ่มรายงานผลการปฏิบัติงาน'; document.getElementById("reportFullName").value = userSession.name || ""; }
   new bootstrap.Modal(document.getElementById("reportFormModal")).show();
+}
+
+// ⚠️ NEW: จำกัดขนาดไฟล์ฝั่ง client เพื่อไม่ให้ผู้ใช้เสียเวลา encode/upload ไฟล์ที่เกินขนาดที่ backend รับได้อยู่ดี
+const MAX_FILE_SIZE_BYTES = 50 * 1024 * 1024; // 50MB ให้ตรงกับ backend
+
+// ⚠️ NEW: ช่วยตรวจสอบและอ่าน response ของ fetch อย่างปลอดภัย ใช้ซ้ำได้ทุกจุดที่เรียก GAS_WEB_APP_URL
+async function callGas(payload) {
+  let res;
+  try {
+    res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify(payload) });
+  } catch (networkErr) {
+    throw new Error("เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ กรุณาตรวจสอบอินเทอร์เน็ตแล้วลองใหม่");
+  }
+  if (!res.ok) throw new Error("เซิร์ฟเวอร์ตอบกลับผิดพลาด (HTTP " + res.status + ")");
+  let data;
+  try {
+    data = await res.json();
+  } catch (parseErr) {
+    throw new Error("ข้อมูลตอบกลับจากเซิร์ฟเวอร์ไม่ถูกต้อง กรุณาลองใหม่อีกครั้ง");
+  }
+  if (data.status === "error") {
+    // ⚠️ NEW: ถ้า backend บอกว่าเซสชันหมดอายุ/ต้องเข้าสู่ระบบใหม่ ให้ล้าง session ฝั่ง client ทันที
+    // กันผู้ใช้กดซ้ำแล้วเจอ error เดิมซ้ำๆ โดยไม่รู้ว่าต้องล็อกอินใหม่
+    const msg = data.message || "เกิดข้อผิดพลาด";
+    if (/เซสชันหมดอายุ|กรุณาเข้าสู่ระบบ/.test(msg) && userSession) { logout(); }
+    throw new Error(msg);
+  }
+  return data;
 }
 
 async function saveReport() {
@@ -866,21 +1093,35 @@ async function saveReport() {
   const missing = ["reportFullName","reportTitle","reportYear","reportDate","reportSubject","reportType"].filter(id => !document.getElementById(id).value.trim());
   if (!editId && !file) missing.push("reportFile");
   if (missing.length) { missing.forEach(id => document.getElementById(id).classList.add("is-invalid")); return Swal.fire({ icon: "warning", title: "ข้อมูลไม่ครบ", text: "กรุณากรอกข้อมูลให้ครบ", confirmButtonColor: "#1C86EE" }); }
-  
+
+  // ⚠️ NEW: ตรวจประเภทไฟล์จริง (ไม่พึ่ง accept="application/pdf" ที่ bypass ได้) และขนาดไฟล์ ก่อนเริ่ม encode/upload
+  if (file) {
+    if (file.type !== "application/pdf") {
+      document.getElementById("reportFile").classList.add("is-invalid");
+      return Swal.fire({ icon: "warning", title: "ไฟล์ไม่ถูกต้อง", text: "รองรับเฉพาะไฟล์ PDF เท่านั้น", confirmButtonColor: "#1C86EE" });
+    }
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      document.getElementById("reportFile").classList.add("is-invalid");
+      return Swal.fire({ icon: "warning", title: "ไฟล์ใหญ่เกินไป", text: "ขนาดไฟล์ต้องไม่เกิน 50MB (ไฟล์นี้ " + (file.size/1024/1024).toFixed(1) + " MB)", confirmButtonColor: "#1C86EE" });
+    }
+  }
+
   const btn = document.getElementById("btn-save"); btn.disabled = true; btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> บันทึก...`;
   Swal.fire({ title: "กำลังบันทึก...", html: "(0%)", allowOutsideClick: false, didOpen: () => Swal.showLoading() });
   try {
-    let uploadId = null;
+    let uploadId = null, totalChunks = null;
     if (file) {
       const base64 = await new Promise(r => { const rd = new FileReader(); rd.onload=()=>r(rd.result.split(",")[1]); rd.readAsDataURL(file); });
-      const CHUNK = 6*1024*1024, total = Math.ceil(base64.length/CHUNK); uploadId = "up"+Date.now();
-      for (let i = 0; i < total; i++) {
-        await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "uploadChunk", uploadId, chunkIndex: i, totalChunks: total, chunkData: base64.slice(i*CHUNK, (i+1)*CHUNK) }) });
-        Swal.update({ html: `(${Math.round(((i+1)/total)*100)}%)` });
+      const CHUNK = 6*1024*1024; totalChunks = Math.ceil(base64.length/CHUNK); uploadId = "up"+Date.now();
+      for (let i = 0; i < totalChunks; i++) {
+        // ⚠️ FIX: เดิมไม่เช็คผลลัพธ์ของแต่ละ chunk เลย ถ้า chunk ไหนล้มเหลว (เช่นเน็ตหลุดกลางทาง)
+        // ระบบจะไม่รู้ตัวและไปสร้างไฟล์ PDF ที่ไม่สมบูรณ์ต่อ ตอนนี้ถ้า chunk ใด fail จะหยุดทันทีและแจ้งผู้ใช้
+        await callGas({ action: "uploadChunk", uploadId, chunkIndex: i, totalChunks, chunkData: base64.slice(i*CHUNK, (i+1)*CHUNK) });
+        Swal.update({ html: `(${Math.round(((i+1)/totalChunks)*100)}%)` });
       }
     }
-    const res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: editId?"update":"create", token: userSession.token, id: editId||undefined, fullName, title, year, eventDate, subjectGroup, reportType, uploadId, fileMimeType: file?.type }) });
-    if ((await res.json()).status !== "success") throw new Error("บันทึกไม่สำเร็จ");
+    // ⚠️ NEW: ส่ง totalChunks แนบไปด้วย เพื่อให้ backend ตรวจสอบว่าไฟล์ประกอบกลับมาครบทุกชิ้นจริง
+    await callGas({ action: editId?"update":"create", token: userSession.token, id: editId||undefined, fullName, title, year, eventDate, subjectGroup, reportType, uploadId, totalChunks, fileMimeType: file?.type });
     bootstrap.Modal.getInstance(document.getElementById("reportFormModal"))?.hide(); await Swal.fire({ icon: "success", title: "สำเร็จ", showConfirmButton: false, timer: 1300 });
     await loadReports(); if (currentView.type === "home") renderHome(); else if (currentView.type === "list") showListPage(currentView.filterKey, currentView.filterValue); else if (currentView.type === "category") showCategoryOverview(currentView.kind);
   } catch (err) { Swal.fire({ icon: "error", title: "ผิดพลาด", text: err.message, confirmButtonColor: "#1C86EE" }); }
@@ -890,17 +1131,58 @@ async function saveReport() {
 function confirmDelete(id) { Swal.fire({ icon: "warning", title: "ยืนยันการลบ", showCancelButton: true, confirmButtonColor: "#CD0000" }).then(res => { if(res.isConfirmed) deleteReport(id); }); }
 async function deleteReport(id) {
   bootstrap.Modal.getInstance(document.getElementById("detailModal"))?.hide(); Swal.fire({ title: "กำลังลบ", didOpen: () => Swal.showLoading() });
-  try { await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "delete", token: userSession.token, id }) });
+  // ⚠️ FIX: เดิมไม่เช็คผลลัพธ์จาก fetch เลย ถ้า backend ปฏิเสธ (เช่นไม่มีสิทธิ์ หรือ session หมดอายุ)
+  // ระบบจะขึ้น "ลบสำเร็จ" หลอกผู้ใช้ทั้งที่จริงไม่ได้ลบ
+  try { await callGas({ action: "delete", token: userSession.token, id });
     await Swal.fire({ icon: "success", title: "ลบสำเร็จ", showConfirmButton: false, timer: 1300 }); await loadReports(); renderHome();
-  } catch (err) { Swal.fire({ icon: "error", text: err.message }); }
+  } catch (err) { Swal.fire({ icon: "error", title: "ลบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
 }
 
 async function openAdminModal() { new bootstrap.Modal(document.getElementById("adminModal")).show(); await refreshAdminList(); }
-async function refreshAdminList() { const listEl = document.getElementById("adminList"); try { const res = await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "listAdmins", token: userSession.token }) }); const data = await res.json(); listEl.innerHTML = data.admins.map(a => `<div class="list-group-item d-flex justify-content-between"><div>${escapeHtml(a.displayName)} <small class="text-secondary">(${escapeHtml(a.email)})</small></div><button class="btn btn-sm btn-outline-danger" onclick="removeAdmin('${escAttr(a.email)}')"><i class="fa-solid fa-trash"></i></button></div>`).join(""); } catch(e){} }
-async function addAdmin() { await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "addAdmin", token: userSession.token, email: document.getElementById("newAdminEmail").value, displayName: document.getElementById("newAdminName").value }) }); document.getElementById("newAdminEmail").value=""; document.getElementById("newAdminName").value=""; await refreshAdminList(); }
-async function removeAdmin(email) { await fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify({ action: "deleteAdmin", token: userSession.token, email }) }); await refreshAdminList(); }
+async function refreshAdminList() {
+  const listEl = document.getElementById("adminList");
+  // ⚠️ FIX: เดิม catch(e){} ปล่อยผ่านเงียบๆ ผู้ใช้ไม่รู้เลยว่าโหลดรายชื่อแอดมินล้มเหลว
+  try {
+    const data = await callGas({ action: "listAdmins", token: userSession.token });
+    listEl.innerHTML = data.admins.map(a => `<div class="list-group-item d-flex justify-content-between"><div>${escapeHtml(a.displayName)} <small class="text-secondary">(${escapeHtml(a.email)})</small></div><button class="btn btn-sm btn-outline-danger" onclick="removeAdmin('${escAttr(a.email)}')"><i class="fa-solid fa-trash"></i></button></div>`).join("");
+  } catch (err) {
+    listEl.innerHTML = `<div class="text-danger small"><i class="fa-solid fa-circle-exclamation"></i> โหลดรายชื่อแอดมินไม่สำเร็จ: ${escapeHtml(err.message)}</div>`;
+  }
+}
+// ⚠️ FIX: เดิมไม่เช็ค response เลย ถ้าเพิ่ม/ลบแอดมินล้มเหลว (เช่นอีเมลผิดโดเมน, ไม่มีสิทธิ์) ผู้ใช้จะไม่เห็น error ใดๆ
+async function addAdmin() {
+  try {
+    await callGas({ action: "addAdmin", token: userSession.token, email: document.getElementById("newAdminEmail").value, displayName: document.getElementById("newAdminName").value });
+    document.getElementById("newAdminEmail").value=""; document.getElementById("newAdminName").value=""; await refreshAdminList();
+  } catch (err) { Swal.fire({ icon: "error", title: "เพิ่มแอดมินไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
+}
+async function removeAdmin(email) {
+  try { await callGas({ action: "deleteAdmin", token: userSession.token, email }); await refreshAdminList(); }
+  catch (err) { Swal.fire({ icon: "error", title: "ลบแอดมินไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
+}
 
-function previewPDFName() { const f = document.getElementById("reportFile").files[0]; document.getElementById("pdfPreview").innerHTML = f ? `<i class="fa-solid fa-file-pdf text-danger"></i> ${escapeHtml(f.name)}` : ""; }
+function previewPDFName() {
+  const input = document.getElementById("reportFile"), f = input.files[0];
+  input.classList.remove("is-invalid");
+  if (!f) { document.getElementById("pdfPreview").innerHTML = ""; document.getElementById("fileDropzone").classList.remove("has-file"); return; }
+  // ⚠️ NEW: แจ้งเตือนทันทีตอนเลือกไฟล์ ไม่ต้องรอกดบันทึกแล้วค่อยรู้ว่าไฟล์ผิดประเภท/ใหญ่เกินไป
+  if (f.type !== "application/pdf") {
+    input.classList.add("is-invalid");
+    document.getElementById("pdfPreview").innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation"></i> รองรับเฉพาะไฟล์ PDF เท่านั้น</span>`;
+    document.getElementById("fileDropzone").classList.remove("has-file");
+    input.value = "";
+    return;
+  }
+  if (f.size > MAX_FILE_SIZE_BYTES) {
+    input.classList.add("is-invalid");
+    document.getElementById("pdfPreview").innerHTML = `<span class="text-danger"><i class="fa-solid fa-circle-exclamation"></i> ไฟล์ใหญ่เกินไป (${(f.size/1024/1024).toFixed(1)} MB) ต้องไม่เกิน 50MB</span>`;
+    document.getElementById("fileDropzone").classList.remove("has-file");
+    input.value = "";
+    return;
+  }
+  document.getElementById("pdfPreview").innerHTML = `<i class="fa-solid fa-file-circle-check text-success"></i> ${escapeHtml(f.name)} <span class="text-muted">(${(f.size/1024/1024).toFixed(2)} MB)</span>`;
+  document.getElementById("fileDropzone").classList.add("has-file");
+}
 function setNoticeState(show) { document.getElementById("line-notice").classList.toggle("show", show); document.documentElement.style.setProperty("--notice-offset", show ? "46px" : "0px"); }
 function hideNoticePermanently() { setNoticeState(false); sessionStorage.setItem("hideLineNotice", "true"); }
 function openInBrowser() { const url = window.location.href; if(navigator.userAgent.toLowerCase().includes("android")) window.location.href = "intent://" + url.replace(/^https?:\/\//, "") + "#Intent;scheme=https;package=com.android.chrome;end"; else window.open(url, "_blank"); }
