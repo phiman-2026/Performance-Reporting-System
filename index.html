@@ -13,9 +13,9 @@
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <style>
 /* ==========================================================
@@ -222,18 +222,6 @@ button{ font-family:inherit; }
 .card-cover .cover-placeholder { font-size: 2.8rem; color: var(--text-muted); opacity: 0.35; }
 .card-cover .cover-placeholder.is-loading{ animation:floatSlow 1.6s ease-in-out infinite; }
 
-/* ---------- Skeleton shimmer while cover thumbnail loads ---------- */
-.card-cover.is-loading-shimmer{
-  background: linear-gradient(100deg, #E5E5EA 30%, #F1F2F6 45%, #E5E5EA 60%);
-  background-size: 250% 100%;
-  animation: coverShimmer 1.5s ease-in-out infinite;
-}
-@keyframes coverShimmer{ 0%{ background-position:100% 0; } 100%{ background-position:-40% 0; } }
-
-/* ---------- ป้ายประเภทรายงาน (แสดงในการ์ด แยกจากป้ายรหัสรายงานด้านบนภาพ) ---------- */
-.card-type-label{ font-size:0.72rem; font-weight:700; color:var(--accent); display:flex; align-items:center; gap:6px; margin-bottom:6px; letter-spacing:.01em; }
-.card-type-label i{ font-size:0.68rem; }
-
 /* ---------- กล่องชื่อรายงาน (พื้นหลังสีขาว + ขอบสีแดง) ---------- */
 .card-cover .cover-title-overlay {
   position: absolute; 
@@ -284,8 +272,7 @@ button{ font-family:inherit; }
 .card-type-badge{
   position:absolute; top:12px; right:12px; z-index:3; color:#fff; font-size:.64rem; font-weight:700;
   padding:5px 12px; border-radius:999px; box-shadow:0 4px 10px rgba(0,0,0,.2);
-  max-width:72%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:.02em;
-  font-family:'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  max-width:72%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:.01em;
 }
 .card-owner-badge{
   position:absolute; top:12px; left:12px; z-index:3; width:28px; height:28px; border-radius:50%;
@@ -772,19 +759,10 @@ async function init() {
   buildDropdowns();
   restoreSession();
   updateAuthUI();
-
-  const loadingEl = document.getElementById("loadingScreen");
-  const hideLoading = () => { setTimeout(() => { loadingEl.classList.add("fade-out"); setTimeout(() => loadingEl.style.display = "none", 400); }, 300); };
-
-  // ⚠️ PERF: ถ้ามี cache สดพอ ให้ render ทันทีและซ่อนหน้า loading ก่อน แล้วค่อยอัปเดตข้อมูลจริงเบื้องหลัง
-  // ผู้ใช้ไม่ต้องรอ network round-trip ทุกครั้งที่เปิด/รีเฟรชหน้า
-  const hasCache = loadCachedReports();
-  if (hasCache) { renderHome(); hideLoading(); }
-
   await loadReports();
-  refreshCurrentView();
-  if (!hasCache) hideLoading();
-
+  renderHome();
+  const loadingEl = document.getElementById("loadingScreen");
+  setTimeout(() => { loadingEl.classList.add("fade-out"); setTimeout(() => loadingEl.style.display = "none", 400); }, 300);
   setupGoogleSignInWhenReady();
   setupDockMagnify();
   setupDockHoverPreview();
@@ -816,16 +794,13 @@ function onDockAccountTap() { if (userSession) openUserMenu(); else openLoginMod
 function setupDockMagnify() {
   const dock = document.getElementById("dock");
   if (!window.matchMedia("(pointer:fine)").matches || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  let rafId = null, lastX = 0;
-  const applyMagnify = () => {
-    rafId = null;
+  dock.addEventListener("mousemove", (e) => {
     dock.querySelectorAll(".dock-item").forEach(item => {
       const rect = item.getBoundingClientRect(); const center = rect.left + rect.width / 2;
-      const dist = Math.abs(lastX - center); item.style.transform = `scale(${Math.max(1, 1.35 - dist / 220).toFixed(2)})`;
+      const dist = Math.abs(e.clientX - center); item.style.transform = `scale(${Math.max(1, 1.35 - dist / 220).toFixed(2)})`;
     });
-  };
-  dock.addEventListener("mousemove", (e) => { lastX = e.clientX; if (rafId == null) rafId = requestAnimationFrame(applyMagnify); });
-  dock.addEventListener("mouseleave", () => { if (rafId) { cancelAnimationFrame(rafId); rafId = null; } dock.querySelectorAll(".dock-item").forEach(item => item.style.transform = ""); });
+  });
+  dock.addEventListener("mouseleave", () => dock.querySelectorAll(".dock-item").forEach(item => item.style.transform = ""));
 }
 
 function setupDockHoverPreview() {
@@ -863,24 +838,6 @@ function fabAction(action) {
   else if (action === "search") { if (window.innerWidth < 992) window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => document.getElementById("searchInput").focus(), 250); }
 }
 
-// ⚠️ PERF: cache รายการรายงานไว้ใน sessionStorage เพื่อให้กลับมาเปิดหน้าซ้ำ/สลับแท็บ เห็นข้อมูลได้ทันที
-// ระหว่างที่ระบบ fetch ข้อมูลล่าสุดจากเซิร์ฟเวอร์อยู่เบื้องหลัง (stale-while-revalidate)
-const REPORTS_CACHE_KEY = "prs_reports_cache";
-const REPORTS_CACHE_MAX_AGE_MS = 10 * 60 * 1000; // ใช้ cache แสดงผลทันทีได้ถ้าอายุไม่เกิน 10 นาที
-function loadCachedReports() {
-  try {
-    const raw = sessionStorage.getItem(REPORTS_CACHE_KEY);
-    if (!raw) return false;
-    const { t, data } = JSON.parse(raw);
-    if (!Array.isArray(data) || !t || Date.now() - t > REPORTS_CACHE_MAX_AGE_MS) return false;
-    allReports = data; lastLoadFailed = false;
-    return true;
-  } catch (e) { return false; }
-}
-function saveCachedReports() {
-  try { sessionStorage.setItem(REPORTS_CACHE_KEY, JSON.stringify({ t: Date.now(), data: allReports })); } catch (e) { /* พื้นที่เต็ม/ปิด storage: ข้ามไปเงียบๆ ไม่กระทบการทำงานหลัก */ }
-}
-
 async function loadReports() {
   try {
     const res = await fetch(GAS_WEB_APP_URL);
@@ -888,12 +845,7 @@ async function loadReports() {
     const data = await res.json();
     allReports = data.reports || []; lastLoadFailed = false;
     debugLogFieldNamesOnce();
-    saveCachedReports();
-  } catch (err) {
-    // ⚠️ FIX: ถ้ามีข้อมูล cache อยู่แล้ว (จากการโหลดครั้งก่อน) ให้คงแสดงข้อมูลเดิมไว้แทนที่จะล้างว่าง
-    // เพื่อไม่ให้ผู้ใช้เห็นหน้าจอ error ทั้งที่มีข้อมูลเก่าที่ยังพอใช้แสดงผลได้อยู่
-    if (allReports.length === 0) { lastLoadFailed = true; }
-  }
+  } catch (err) { allReports = []; lastLoadFailed = true; }
 }
 
 function sortByDateDesc(list) {
@@ -953,14 +905,13 @@ function reportCardHtml(r, idx) {
   const isMine = userSession && (userSession.email||"").toLowerCase() === getReporterEmail(r).toLowerCase();
   return `
     <div class="report-card reveal" style="animation-delay:${delay}s; --accent:${groupColor(r)};" onclick="openDetail('${escAttr(id)}')" data-report-id="${escAttr(id)}" data-file-url="${escAttr(fileUrl)}">
-      <div class="card-cover is-loading-shimmer">
+      <div class="card-cover">
         <div class="cover-frame"><i class="fa-solid fa-file-pdf cover-placeholder is-loading"></i></div>
-        <span class="card-type-badge" style="background:${groupColor(r)}" title="รหัสรายงาน">${escapeHtml(id || "-")}</span>
+        <span class="card-type-badge" style="background:${groupColor(r)}" title="${escAttr(r["ประเภทรายงาน"]||"-")}">${escapeHtml(r["ประเภทรายงาน"] || "-")}</span>
         ${isMine ? `<span class="card-owner-badge" title="รายงานของฉัน"><i class="fa-solid fa-user-check"></i></span>` : ""}
         <div class="cover-title-overlay">${escapeHtml(title)}</div>
       </div>
       <div class="card-body">
-        <div class="card-type-label"><i class="fa-solid fa-layer-group"></i> ${escapeHtml(r["ประเภทรายงาน"] || "-")}</div>
         <div class="card-sub">${escapeHtml(r["กลุ่มสาระการเรียนรู้"] || "-")}</div>
         <div class="card-author"><i class="fa-solid fa-user-tie"></i> ${escapeHtml(r["ชื่อ-สกุล"] || "-")}</div>
         <div class="card-date"><i class="fa-regular fa-calendar"></i> ปีการศึกษา ${escapeHtml(r["ปีการศึกษา"] || "-")} • ${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</div>
@@ -982,37 +933,34 @@ async function renderCoverThumbnail(cardEl) {
   const id = cardEl.dataset.reportId;
   const fileUrl = cardEl.dataset.fileUrl;
   const frame = cardEl.querySelector(".cover-frame");
-  const cover = cardEl.querySelector(".card-cover");
-  const stopShimmer = () => cover?.classList.remove("is-loading-shimmer");
   if (!frame || cardEl.dataset.coverDone === "1") return;
   cardEl.dataset.coverDone = "1";
 
-  if (!fileUrl) { frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`; stopShimmer(); return; }
+  if (!fileUrl) { frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`; return; }
 
   // 1. ตรวจจับผ่านรูปจาก Google Drive
   const driveMatch = fileUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || fileUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
   if (driveMatch && driveMatch[1]) {
     const thumbUrl = `https://drive.google.com/thumbnail?id=${driveMatch[1]}&sz=w800`;
     const img = new Image();
-    img.alt = "หน้าปกรายงาน"; img.loading = "lazy"; img.decoding = "async";
+    img.alt = "หน้าปกรายงาน";
     img.onload = () => {
       // ถ้ารูปมีความกว้างมากกว่าความสูง (แนวนอน) ให้ใส่ class "is-landscape"
       if (img.naturalWidth > img.naturalHeight) cardEl.classList.add("is-landscape");
-      frame.innerHTML = ""; frame.appendChild(img); stopShimmer();
+      frame.innerHTML = ""; frame.appendChild(img);
     };
-    img.onerror = () => { frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`; stopShimmer(); };
+    img.onerror = () => frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`;
     img.src = thumbUrl;
     return;
   }
 
   // 2. ถ้าเป็น PDF.js (ลิงก์ทั่วไปที่ไม่ใช่รูป Drive)
-  if (typeof pdfjsLib === "undefined") { frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`; stopShimmer(); return; }
+  if (typeof pdfjsLib === "undefined") { frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`; return; }
 
   if (coverCache.has(id)) {
     const cached = coverCache.get(id);
     if (cached.isLandscape) cardEl.classList.add("is-landscape");
-    frame.innerHTML = `<img src="${cached.url}" alt="หน้าปกรายงาน" loading="lazy" decoding="async">`;
-    stopShimmer();
+    frame.innerHTML = `<img src="${cached.url}" alt="หน้าปกรายงาน">`;
     return;
   }
 
@@ -1035,11 +983,9 @@ async function renderCoverThumbnail(cardEl) {
     const dataUrl = canvas.toDataURL("image/jpeg", 0.82);
     
     coverCache.set(id, { url: dataUrl, isLandscape });
-    frame.innerHTML = `<img src="${dataUrl}" alt="หน้าปกรายงาน" loading="lazy" decoding="async">`;
-    stopShimmer();
+    frame.innerHTML = `<img src="${dataUrl}" alt="หน้าปกรายงาน">`;
   } catch (err) {
     frame.innerHTML = `<i class="fa-solid fa-file-pdf cover-placeholder"></i>`;
-    stopShimmer();
   }
 }
 
@@ -1097,7 +1043,6 @@ function openDetail(id) {
       <h4 class="detail-hero-title">${escapeHtml(r["ชื่อรายงาน"] || "-")}</h4>
       <div class="detail-badges">
         <span class="detail-badge"><i class="fa-solid fa-layer-group"></i>${escapeHtml(r["ประเภทรายงาน"] || "-")}</span>
-        <span class="detail-badge"><i class="fa-solid fa-hashtag"></i>${escapeHtml(r["รหัส"] || "-")}</span>
       </div>
     </div>
     <div class="detail-body-panel">
