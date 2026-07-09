@@ -350,6 +350,16 @@ button{ font-family:inherit; }
 }
 .detail-badge i{ font-size:.68rem; color:var(--gold-light); }
 .detail-body-panel{ padding:24px 26px 8px; }
+.detail-reporter-strip{
+  display:flex; align-items:center; gap:14px; background:var(--paper); border:1px solid var(--line);
+  border-radius:14px; padding:14px 16px; margin-bottom:18px;
+}
+.detail-reporter-avatar{
+  width:44px; height:44px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg, var(--navy), var(--navy-soft)); color:#fff; font-size:1.1rem;
+  box-shadow:0 4px 12px rgba(30,64,175,.28);
+}
+.detail-reporter-name{ font-family:var(--font-display); font-weight:700; font-size:1rem; color:var(--text); margin-top:1px; }
 .detail-meta-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px 14px; margin-bottom:6px; }
 .detail-meta-item{ display:flex; gap:11px; align-items:flex-start; }
 .detail-meta-icon{
@@ -700,6 +710,36 @@ function groupColor(r) { return TYPE_COLOR_MAP[r["ประเภทรายง
 // ดึงสีตามกลุ่มสาระการเรียนรู้ (สำหรับส่วนอื่น ๆ ถ้าต้องการใช้)
 function subjectColor(r) { return SUBJECT_COLOR_MAP[r["กลุ่มสาระการเรียนรู้"]] || SUBJECT_COLOR_MAP[SUBJECT_GROUPS[0]]; }
 
+// ⚠️ FIX (สำคัญ): เดิม hardcode ชื่อคีย์อีเมลผู้บันทึกไว้ตายตัวว่า "อีเมลผู้บันทึก" เท่านั้น
+// ถ้าฝั่ง backend (Google Apps Script/Sheet) ใช้ชื่อคอลัมน์ไม่ตรงกันเป๊ะแม้แต่ตัวอักษรเดียว
+// (เช่น "อีเมล", "อีเมลผู้ใช้", "Email", มีช่องว่างเกิน ฯลฯ) การเช็ค r["อีเมลผู้บันทึก"] จะได้ undefined เสมอ
+// ผลคือ "รายงานของฉัน" ว่างเปล่า และปุ่มแก้ไข/ลบไม่ขึ้นเลยแม้จะเป็นเจ้าของรายงานจริง
+// ฟังก์ชันนี้ลองชื่อคีย์ที่เป็นไปได้หลายแบบก่อน แล้วค่อย fallback ไปสแกนหาค่าที่หน้าตาเหมือนอีเมลในฟิลด์ใดก็ได้ของแถวนั้น
+const EMAIL_FIELD_CANDIDATES = [
+  "อีเมลผู้บันทึก", "อีเมล ผู้บันทึก", "อีเมล", "อีเมล์", "อีเมลผู้ใช้", "อีเมลผู้ใช้งาน",
+  "อีเมลผู้อัปโหลด", "อีเมลผู้กรอก", "Email", "email", "EMAIL", "userEmail", "createdBy", "ผู้บันทึก (อีเมล)"
+];
+function getReporterEmail(r) {
+  for (const key of EMAIL_FIELD_CANDIDATES) {
+    if (r[key] && String(r[key]).includes("@")) return String(r[key]).trim();
+  }
+  // fallback สุดท้าย: สแกนทุกฟิลด์ของแถวนี้หาค่าที่ตรงรูปแบบอีเมล
+  for (const k in r) {
+    const v = r[k];
+    if (typeof v === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim())) return v.trim();
+  }
+  return "";
+}
+// ⚠️ NEW: log ชื่อคีย์จริงของข้อมูล 1 แถวไว้ใน console (F12 > Console) ครั้งเดียวตอนโหลดเสร็จ
+// เพื่อให้ตรวจสอบง่ายว่าคีย์อีเมลจริง ๆ ที่ backend ส่งมาชื่ออะไร ถ้ายังหาไม่เจอในลิสต์ข้างบน
+let _loggedFieldNamesOnce = false;
+function debugLogFieldNamesOnce() {
+  if (_loggedFieldNamesOnce || allReports.length === 0) return;
+  _loggedFieldNamesOnce = true;
+  console.info("[PRS] ตัวอย่างชื่อคีย์ข้อมูลรายงาน (แถวแรก):", Object.keys(allReports[0]));
+  if (!getReporterEmail(allReports[0])) console.warn("[PRS] ไม่พบฟิลด์อีเมลผู้บันทึกในข้อมูล กรุณาตรวจสอบชื่อคอลัมน์จริงจาก log ด้านบน แล้วเพิ่มเข้าไปใน EMAIL_FIELD_CANDIDATES");
+}
+
 let allReports = [];
 let userSession = null; 
 let currentView = { type: "home" };
@@ -804,6 +844,7 @@ async function loadReports() {
     if (!res.ok) throw new Error("Server Error " + res.status);
     const data = await res.json();
     allReports = data.reports || []; lastLoadFailed = false;
+    debugLogFieldNamesOnce();
   } catch (err) { allReports = []; lastLoadFailed = true; }
 }
 
@@ -861,7 +902,7 @@ function renderHome() {
 
 function reportCardHtml(r, idx) {
   const id = r["รหัส"], delay = Math.min(idx || 0, 10) * 0.05, title = r["ชื่อรายงาน"] || "-", fileUrl = r["ลิงก์ไฟล์รายงาน"] || "";
-  const isMine = userSession && (userSession.email||"").toLowerCase() === (r["อีเมลผู้บันทึก"]||"").toLowerCase();
+  const isMine = userSession && (userSession.email||"").toLowerCase() === getReporterEmail(r).toLowerCase();
   return `
     <div class="report-card reveal" style="animation-delay:${delay}s; --accent:${groupColor(r)};" onclick="openDetail('${escAttr(id)}')" data-report-id="${escAttr(id)}" data-file-url="${escAttr(fileUrl)}">
       <div class="card-cover">
@@ -993,7 +1034,7 @@ function onSearchKeyup(e) {
 
 function openDetail(id) {
   const r = allReports.find(x => x["รหัส"] === id); if (!r) return;
-  const owner = userSession && (userSession.role === "super" || (userSession.email||"").toLowerCase() === (r["อีเมลผู้บันทึก"]||"").toLowerCase());
+  const owner = userSession && (userSession.role === "super" || (userSession.email||"").toLowerCase() === getReporterEmail(r).toLowerCase());
 
   document.getElementById("detailBody").innerHTML = `
     <div class="detail-hero">
@@ -1002,10 +1043,16 @@ function openDetail(id) {
       <h4 class="detail-hero-title">${escapeHtml(r["ชื่อรายงาน"] || "-")}</h4>
       <div class="detail-badges">
         <span class="detail-badge"><i class="fa-solid fa-layer-group"></i>${escapeHtml(r["ประเภทรายงาน"] || "-")}</span>
-        <span class="detail-badge"><i class="fa-solid fa-book"></i>${escapeHtml(r["กลุ่มสาระการเรียนรู้"] || "-")}</span>
       </div>
     </div>
     <div class="detail-body-panel">
+      <div class="detail-reporter-strip">
+        <div class="detail-reporter-avatar"><i class="fa-solid fa-user-tie"></i></div>
+        <div>
+          <div class="detail-meta-label">ผู้บันทึกรายงาน (ชื่อ-สกุล)</div>
+          <div class="detail-reporter-name">${escapeHtml(r["ชื่อ-สกุล"] || "-")}</div>
+        </div>
+      </div>
       <div class="detail-meta-grid">
         <div class="detail-meta-item">
           <div class="detail-meta-icon"><i class="fa-solid fa-calendar-day"></i></div>
@@ -1016,8 +1063,8 @@ function openDetail(id) {
           <div><div class="detail-meta-label">วันที่ปฏิบัติงาน</div><div class="detail-meta-value">${formatThaiDate(r["วันที่ปฏิบัติงาน"])}</div></div>
         </div>
         <div class="detail-meta-item" style="grid-column:1 / -1;">
-          <div class="detail-meta-icon"><i class="fa-solid fa-user-tie"></i></div>
-          <div><div class="detail-meta-label">ผู้บันทึกรายงาน</div><div class="detail-meta-value">${escapeHtml(r["ชื่อ-สกุล"] || "-")}</div></div>
+          <div class="detail-meta-icon"><i class="fa-solid fa-book"></i></div>
+          <div><div class="detail-meta-label">กลุ่มสาระการเรียนรู้</div><div class="detail-meta-value">${escapeHtml(r["กลุ่มสาระการเรียนรู้"] || "-")}</div></div>
         </div>
       </div>
     </div>
@@ -1090,7 +1137,7 @@ function updateAuthUI() { const loginBtn = document.getElementById("loginBtn"), 
 // เดิมใช้ confirm/cancel ของ Swal 2 ปุ่มเท่านั้น ทำให้ใส่ฟังก์ชันเพิ่มไม่ได้ จึงเปลี่ยนมาใช้ html ปุ่มเอง
 function openUserMenu() {
   const isSuper = userSession && userSession.role === "super";
-  const myCount = allReports.filter(r => (r["อีเมลผู้บันทึก"] || "").toLowerCase() === (userSession.email || "").toLowerCase()).length;
+  const myCount = allReports.filter(r => getReporterEmail(r).toLowerCase() === (userSession.email || "").toLowerCase()).length;
   Swal.fire({
     title: userSession.name || userSession.email,
     html: `
@@ -1111,7 +1158,7 @@ function showMyReports() {
   if (!userSession) { openLoginModal(); return; }
   currentView = { type: "mine" };
   setActiveNav("");
-  const mine = sortByDateDesc(allReports.filter(r => (r["อีเมลผู้บันทึก"] || "").toLowerCase() === (userSession.email || "").toLowerCase()));
+  const mine = sortByDateDesc(allReports.filter(r => getReporterEmail(r).toLowerCase() === (userSession.email || "").toLowerCase()));
   document.getElementById("mainView").innerHTML = `
     <div class="list-toolbar reveal"><h4><i class="fa-solid fa-folder-user" style="color:var(--navy-soft);margin-right:6px;"></i>รายงานผลการปฏิบัติงานของฉัน <span class="text-secondary" style="font-weight:400;font-size:.85rem;">(${mine.length} รายการ)</span></h4>
     <a class="back-link" href="javascript:void(0)" onclick="goHome()"><i class="fa-solid fa-arrow-left"></i> กลับหน้าแรก</a></div>
