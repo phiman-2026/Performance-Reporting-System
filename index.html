@@ -679,8 +679,9 @@ const ALLOWED_DOMAIN = "phiman.ac.th";
 
 const REPORT_TYPES = [
   "รายงานไปราชการ", "ผลการปฏิบัติงานเพื่อเลื่อนเงินเดือน", "ผลการพัฒนางานตามข้อตกลง (PA)",
-  "งานตามมาตรฐานตำแหน่ง", "งานตามนโยบาย/การสั่งการ", "งานตามพื้นที่", "การพัฒนาอย่างเข้ม (ครูผู้ช่วย)", "รายงานผลารปฏิบัติงานและการประเมินตนเอง (SAR)", "งานอื่น ๆ"
+  "งานตามมาตรฐานตำแหน่ง", "งานตามนโยบาย/การสั่งการ", "งานตามพื้นที่", "การพัฒนาอย่างเข้ม (ครูผู้ช่วย)", "รายงานผลการปฏิบัติงานและการประเมินตนเอง (SAR)", "งานอื่น ๆ"
 ];
+const REPORT_TYPE_FALLBACK = "งานอื่น ๆ";
 
 const SUBJECT_GROUPS = [
   "ภาษาไทย","คณิตศาสตร์","วิทยาศาสตร์และเทคโนโลยี","สังคมศึกษา ศาสนา และวัฒนธรรม",
@@ -705,8 +706,45 @@ const TYPE_COLORS = [
 const TYPE_COLOR_MAP = Object.fromEntries(REPORT_TYPES.map((t, i) => [t, TYPE_COLORS[i % TYPE_COLORS.length]]));
 const SUBJECT_COLOR_MAP = Object.fromEntries(SUBJECT_GROUPS.map((s, i) => [s, SUBJECT_COLORS[i % SUBJECT_COLORS.length]]));
 
+function normalizeReportType(value) {
+  const raw = String(value ?? "").trim();
+  if (!raw) return "";
+  const normalized = raw.replace(/\s+/g, " ").replace(/\s*\(\s*/g, " (").replace(/\s*\)\s*/g, ") ").trim();
+  const key = normalizeText(normalized);
+
+  const directMap = {
+    [normalizeText("รายงานไปราชการ")]: "รายงานไปราชการ",
+    [normalizeText("ผลการปฏิบัติงานเพื่อเลื่อนเงินเดือน")]: "ผลการปฏิบัติงานเพื่อเลื่อนเงินเดือน",
+    [normalizeText("ผลการพัฒนางานตามข้อตกลง (PA)")]: "ผลการพัฒนางานตามข้อตกลง (PA)",
+    [normalizeText("งานตามมาตรฐานตำแหน่ง")]: "งานตามมาตรฐานตำแหน่ง",
+    [normalizeText("งานตามนโยบาย/การสั่งการ")]: "งานตามนโยบาย/การสั่งการ",
+    [normalizeText("งานตามพื้นที่")]: "งานตามพื้นที่",
+    [normalizeText("การพัฒนาอย่างเข้ม (ครูผู้ช่วย)")]: "การพัฒนาอย่างเข้ม (ครูผู้ช่วย)",
+    [normalizeText("รายงานผลการปฏิบัติงานและการประเมินตนเอง (SAR)")]: "รายงานผลการปฏิบัติงานและการประเมินตนเอง (SAR)",
+    [normalizeText("งานอื่น ๆ")]: "งานอื่น ๆ",
+    [normalizeText("งานอื่น")]: "งานอื่น ๆ",
+    [normalizeText("อื่น ๆ")]: "งานอื่น ๆ"
+  };
+
+  if (directMap[key]) return directMap[key];
+  if (key.includes("ไปราชการ")) return "รายงานไปราชการ";
+  if (key.includes("เลื่อนเงินเดือน")) return "ผลการปฏิบัติงานเพื่อเลื่อนเงินเดือน";
+  if (key.includes("ข้อตกลง") || key.includes("pa")) return "ผลการพัฒนางานตามข้อตกลง (PA)";
+  if (key.includes("มาตรฐานตำแหน่ง")) return "งานตามมาตรฐานตำแหน่ง";
+  if (key.includes("นโยบาย") || key.includes("สั่งการ")) return "งานตามนโยบาย/การสั่งการ";
+  if (key.includes("พื้นที่")) return "งานตามพื้นที่";
+  if (key.includes("พัฒนาอย่างเข้ม") || key.includes("ครูผู้ช่วย")) return "การพัฒนาอย่างเข้ม (ครูผู้ช่วย)";
+  if (key.includes("sar") || key.includes("ประเมินตนเอง")) return "รายงานผลการปฏิบัติงานและการประเมินตนเอง (SAR)";
+  if (key.includes("อื่น")) return REPORT_TYPE_FALLBACK;
+  return REPORT_TYPES.includes(raw) ? raw : REPORT_TYPE_FALLBACK;
+}
+
+function getReportTypeValue(r) {
+  return normalizeReportType(r["ประเภทรายงาน"]);
+}
+
 // ดึงสีตามประเภทรายงาน (สำหรับแถบเส้นของการ์ด)
-function groupColor(r) { return TYPE_COLOR_MAP[r["ประเภทรายงาน"]] || TYPE_COLOR_MAP[REPORT_TYPES[0]]; }
+function groupColor(r) { return TYPE_COLOR_MAP[getReportTypeValue(r)] || TYPE_COLOR_MAP[REPORT_TYPES[0]]; }
 // ดึงสีตามกลุ่มสาระการเรียนรู้ (สำหรับส่วนอื่น ๆ ถ้าต้องการใช้)
 function subjectColor(r) { return SUBJECT_COLOR_MAP[r["กลุ่มสาระการเรียนรู้"]] || SUBJECT_COLOR_MAP[SUBJECT_GROUPS[0]]; }
 
@@ -786,6 +824,7 @@ async function init() {
   restoreSession();
   updateAuthUI();
   await loadReports();
+  buildDropdowns(allReports);
   renderHome();
   const loadingEl = document.getElementById("loadingScreen");
   setTimeout(() => { loadingEl.classList.add("fade-out"); setTimeout(() => loadingEl.style.display = "none", 400); }, 300);
@@ -804,11 +843,16 @@ function setupGoogleSignInWhenReady() {
   }, 500);
 }
 
-function buildDropdowns() {
+function buildDropdowns(existingReports = []) {
+  const typeValues = [...new Set([
+    ...REPORT_TYPES,
+    ...existingReports.map(r => normalizeReportType(r["ประเภทรายงาน"])).filter(Boolean)
+  ])];
+
   document.getElementById("reportSubject").innerHTML = '<option value="">-- เลือกกลุ่มสาระ --</option>' + SUBJECT_GROUPS.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join("");
-  document.getElementById("reportType").innerHTML = '<option value="">-- เลือกประเภทรายงาน --</option>' + REPORT_TYPES.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+  document.getElementById("reportType").innerHTML = '<option value="">-- เลือกประเภทรายงาน --</option>' + typeValues.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
   document.getElementById("subjectFlyout").innerHTML = `<div class="flyout-title"><span>กลุ่มสาระการเรียนรู้</span><span class="flyout-all" onclick="showCategoryOverview('subject')">ดูทั้งหมด</span></div>` + SUBJECT_GROUPS.map(s => `<a href="javascript:void(0)" style="--item-color:${SUBJECT_COLOR_MAP[s]}" onclick="showListPage('subject','${escAttr(s)}')">${escapeHtml(s)}</a>`).join("");
-  document.getElementById("typeFlyout").innerHTML = `<div class="flyout-title"><span>ประเภทรายงาน</span><span class="flyout-all" onclick="showCategoryOverview('type')">ดูทั้งหมด</span></div>` + REPORT_TYPES.map(t => `<a href="javascript:void(0)" style="--item-color:${TYPE_COLOR_MAP[t]}" onclick="showListPage('type','${escAttr(t)}')">${escapeHtml(t)}</a>`).join("");
+  document.getElementById("typeFlyout").innerHTML = `<div class="flyout-title"><span>ประเภทรายงาน</span><span class="flyout-all" onclick="showCategoryOverview('type')">ดูทั้งหมด</span></div>` + typeValues.map(t => `<a href="javascript:void(0)" style="--item-color:${TYPE_COLOR_MAP[t] || TYPE_COLORS[0]}" onclick="showListPage('type','${escAttr(t)}')">${escapeHtml(t)}</a>`).join("");
 }
 
 function closeAllFlyouts() { document.getElementById("subjectFlyout")?.classList.remove("show"); document.getElementById("typeFlyout")?.classList.remove("show"); }
@@ -901,7 +945,7 @@ function refreshCurrentView() {
 function groupReports(list, key) {
   const map = new Map();
   for (const r of list) {
-    const k = r[key] || "";
+    const k = key === "ประเภทรายงาน" ? getReportTypeValue(r) : (r[key] || "");
     if (!map.has(k)) map.set(k, []);
     map.get(k).push(r);
   }
@@ -1200,7 +1244,7 @@ function openUploadForm(editId) {
     const r = allReports.find(x => x["รหัส"] === editId); if (!r) return;
     // ⚠️ FIX: เดิมเรียก .match() ซ้ำ 2 ครั้งกับ string เดียวกันโดยไม่จำเป็น เก็บผลลัพธ์ไว้ในตัวแปรครั้งเดียวแทน
     const dateMatch = (r["วันที่ปฏิบัติงาน"]||"").match(/^(\d{4})-(\d{2})-(\d{2})/);
-    document.getElementById("reportFormTitle").innerHTML = '<i class="fa-solid fa-pen"></i> แก้ไขรายงานผลการปฏิบัติงาน'; document.getElementById("reportEditId").value = editId; document.getElementById("reportFullName").value = r["ชื่อ-สกุล"] || ""; document.getElementById("reportTitle").value = r["ชื่อรายงาน"] || ""; document.getElementById("reportYear").value = r["ปีการศึกษา"] || ""; document.getElementById("reportDate").value = dateMatch ? dateMatch[0] : ""; document.getElementById("reportSubject").value = r["กลุ่มสาระการเรียนรู้"] || ""; document.getElementById("reportType").value = r["ประเภทรายงาน"] || "";
+    document.getElementById("reportFormTitle").innerHTML = '<i class="fa-solid fa-pen"></i> แก้ไขรายงานผลการปฏิบัติงาน'; document.getElementById("reportEditId").value = editId; document.getElementById("reportFullName").value = r["ชื่อ-สกุล"] || ""; document.getElementById("reportTitle").value = r["ชื่อรายงาน"] || ""; document.getElementById("reportYear").value = r["ปีการศึกษา"] || ""; document.getElementById("reportDate").value = dateMatch ? dateMatch[0] : ""; document.getElementById("reportSubject").value = r["กลุ่มสาระการเรียนรู้"] || ""; document.getElementById("reportType").value = normalizeReportType(r["ประเภทรายงาน"]) || "";
   } else { document.getElementById("reportFormTitle").innerHTML = '<i class="fa-solid fa-file-circle-plus"></i> เพิ่มรายงานผลการปฏิบัติงาน'; document.getElementById("reportFullName").value = userSession.name || ""; }
   new bootstrap.Modal(document.getElementById("reportFormModal")).show();
 }
@@ -1235,7 +1279,9 @@ async function callGas(payload) {
 
 async function saveReport() {
   const editId = document.getElementById("reportEditId").value; if (!userSession) return;
-  const fullName = document.getElementById("reportFullName").value.trim(), title = document.getElementById("reportTitle").value.trim(), year = document.getElementById("reportYear").value.trim(), eventDate = document.getElementById("reportDate").value, subjectGroup = document.getElementById("reportSubject").value, reportType = document.getElementById("reportType").value, file = document.getElementById("reportFile").files[0];
+  const fullName = document.getElementById("reportFullName").value.trim(), title = document.getElementById("reportTitle").value.trim(), year = document.getElementById("reportYear").value.trim(), eventDate = document.getElementById("reportDate").value, subjectGroup = document.getElementById("reportSubject").value, rawReportType = document.getElementById("reportType").value, file = document.getElementById("reportFile").files[0];
+  const reportType = normalizeReportType(rawReportType) || REPORT_TYPE_FALLBACK;
+  document.getElementById("reportType").value = reportType;
   const missing = ["reportFullName","reportTitle","reportYear","reportDate","reportSubject","reportType"].filter(id => !document.getElementById(id).value.trim());
   if (!editId && !file) missing.push("reportFile");
   if (missing.length) { missing.forEach(id => document.getElementById(id).classList.add("is-invalid")); return Swal.fire({ icon: "warning", title: "ข้อมูลไม่ครบ", text: "กรุณากรอกข้อมูลให้ครบ", confirmButtonColor: "#1C86EE" }); }
