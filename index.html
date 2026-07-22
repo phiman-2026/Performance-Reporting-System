@@ -22,35 +22,40 @@
    DESIGN TOKENS — iOS Style Identity (Solid Colors, Clean UI)
 ========================================================== */
 :root {
+  /* ==========================================================
+     Apple-style identity — single Action Blue accent,
+     near-black ink, parchment/white canvases, pill actions
+  ========================================================== */
   --color-pink: #FF1493;
-  --color-blue: #1E40AF;
-  --color-red: #DC2626;
-  --color-gray: #CBD5E1;
-  --color-dark: #0F172A;
+  --color-blue: #0066CC;
+  --color-red: #FF3B30;
+  --color-gray: #D2D2D7;
+  --color-dark: #1D1D1F;
 
-  /* ---- Reference tone: royal blue / slate SaaS identity ---- */
-  --navy: #1E40AF;
-  --navy-deep: #1E3A8A;
-  --navy-soft: #3B5BDB;
-  --gold: #1E40AF;
-  --gold-light: #3B5BDB;
-  --gold-ink: #334155;
+  /* ---- Single interactive color: Action Blue ---- */
+  --navy: #0066CC;       /* Action Blue — every link, every pill CTA */
+  --navy-deep: #0055AD;  /* pressed / hover-darken */
+  --navy-soft: #0066CC;  /* kept equal to Action Blue — no second accent */
+  --navy-on-dark: #2997FF; /* Sky Link Blue — links on dark tiles */
+  --gold: #0066CC;
+  --gold-light: #2997FF;
+  --gold-ink: #1D1D1F;
 
-  --paper: #F8FAFC; 
+  --paper: #F5F5F7;      /* Parchment canvas */
   --paper-card: #FFFFFF;
-  --line: #E2E8F0;
-  --text: #0F172A;
-  --text-muted: #64748B;
-  --text-faint: #94A3B8;
-  
+  --line: #E0E0E0;
+  --text: #1D1D1F;       /* Near-black ink */
+  --text-muted: #7A7A7A;
+  --text-faint: #AEAEB2;
+
   --danger: var(--color-red);
-  --radius-sm: 12px; 
-  --radius: 18px; 
-  
-  --shadow-card: 0 4px 15px rgba(0, 0, 0, 0.05);
-  --shadow-elevated: 0 20px 50px rgba(30, 64, 175, 0.16), 0 4px 12px rgba(30, 64, 175, 0.08);
-  --font-display: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-body: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+  --radius-sm: 8px;
+  --radius: 18px;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-elevated: 0 3px 30px rgba(0, 0, 0, 0.22);
+  --font-display: 'Prompt', 'SF Pro Display', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Prompt', 'SF Pro Text', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   --notice-offset: 0px;
 }
 
@@ -92,7 +97,7 @@ button{ font-family:inherit; }
 .loading-seal{ width:78px; height:78px; margin-bottom:20px; object-fit:contain; border-radius:0; background:transparent; padding:0; box-shadow:none; animation:floatSlow 2.4s ease-in-out infinite; }
 .loading-title{ font-family:var(--font-display); font-size:1.08rem; font-weight:700; color:var(--navy); margin-bottom:20px; letter-spacing:.01em; }
 .loading-bar-container{ width:220px; height:5px; background:var(--line); border-radius:10px; overflow:hidden; }
-.loading-bar-progress{ width:40%; height:100%; background:linear-gradient(90deg, var(--navy), var(--gold)); border-radius:10px; animation:loadingMove 1.4s infinite ease-in-out; }
+.loading-bar-progress{ width:40%; height:100%; background:var(--navy); border-radius:10px; animation:loadingMove 1.4s infinite ease-in-out; }
 @keyframes loadingMove{ 0%{transform:translateX(-100%);} 100%{transform:translateX(220%);} }
 
 /* ---------- HEADER ---------- */
@@ -102,7 +107,6 @@ button{ font-family:inherit; }
   backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%);
   display:flex; align-items:center; gap:12px; padding:0 14px;
   border-bottom: 1px solid var(--line);
-  box-shadow: 0 1px 0 var(--gold-light);
   transition:top .2s ease;
 }
 .logo-mark{ object-fit:contain; background:transparent; border-radius:0; box-shadow:none; padding:0; }
@@ -129,15 +133,15 @@ button{ font-family:inherit; }
 .header-btn:active{ transform:scale(.94); }
 
 .login-btn{
-  width:40px; height:40px; padding:0; border:none; border-radius:12px; flex-shrink:0;
-  background: linear-gradient(135deg, var(--navy), var(--navy-soft));
+  width:40px; height:40px; padding:0; border:none; border-radius:var(--radius-sm); flex-shrink:0;
+  background: var(--navy);
   color:#fff; display:flex; align-items:center; justify-content:center; gap:8px;
-  font-size:1rem; font-weight:600; box-shadow:0 6px 16px rgba(30,64,175,.28);
-  transition:transform .15s ease, box-shadow .15s ease, width .2s ease, padding .2s ease;
+  font-size:1rem; font-weight:400;
+  transition:transform .15s ease, background .15s ease, width .2s ease, padding .2s ease;
 }
 .login-btn .login-label{ display:none; }
-.login-btn:hover{ transform:translateY(-1px); box-shadow:0 8px 20px rgba(30,64,175,.36); }
-.login-btn:active{ transform:scale(.96); }
+.login-btn:hover{ background: var(--navy-deep); }
+.login-btn:active{ transform:scale(.95); }
 @media(min-width:576px){
   .login-btn{ width:auto; padding:0 18px 0 16px; border-radius:999px; }
   .login-btn .login-label{ display:inline; font-size:.86rem; white-space:nowrap; }
@@ -149,7 +153,7 @@ button{ font-family:inherit; }
 }
 .user-chip:hover{ background:rgba(142, 142, 147, 0.18); }
 .user-chip img{ width:28px; height:28px; border-radius:50%; object-fit:cover; }
-.user-chip span{ font-size:.78rem; font-weight: 500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.user-chip span{ font-size:.78rem; font-weight: 600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 @media(min-width:992px){
   .app-header{ height:80px; padding:0 40px; }
@@ -193,10 +197,10 @@ button{ font-family:inherit; }
   position: relative;
 }
 .report-card:hover, .report-card:focus-visible {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-.report-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px; z-index: 10; background: var(--accent); }
+.report-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; z-index: 10; background: var(--accent); }
 
 /* หน้าปก */
 .card-cover {
@@ -247,7 +251,7 @@ button{ font-family:inherit; }
   text-align: center; 
   
   /* สีตัวอักษรเข้ม เพื่อให้อ่านง่ายบนพื้นหลังขาว */
-  color: var(--navy); 
+  color: var(--text); 
   font-family: var(--font-display);
   font-size: 0.85rem; 
   font-weight: 700; 
@@ -257,11 +261,11 @@ button{ font-family:inherit; }
   -webkit-line-clamp: 2; 
   -webkit-box-orient: vertical; 
   overflow: hidden;
-  box-shadow: 0 4px 14px rgba(30,64,175,0.18);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
 }
 
 .report-card .card-body { padding: 26px 18px 18px; }
-.report-card .card-sub { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; display: flex; align-items: center; gap: 6px; }
+.report-card .card-sub { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; gap: 6px; }
 .report-card .card-sub::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
 .report-card .card-author { font-size: 0.78rem; color: var(--text); font-weight: 600; margin-top: 7px; display: flex; align-items: center; gap: 6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .report-card .card-author i { font-size: 0.7rem; color: var(--accent); flex-shrink:0; }
@@ -270,14 +274,17 @@ button{ font-family:inherit; }
 
 /* ---------- CARD BADGES (ประเภทรายงาน / เจ้าของรายงาน) ---------- */
 .card-type-badge{
-  position:absolute; top:12px; right:12px; z-index:3; color:#fff; font-size:.64rem; font-weight:700;
+  position:absolute; top:12px; right:12px; z-index:3; color:#000; font-size:.64rem; font-weight:700;
   padding:5px 12px; border-radius:999px; box-shadow:0 4px 10px rgba(0,0,0,.2);
   max-width:72%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; letter-spacing:.01em;
+}
+.card-id-badge{
+  color:#fff;
 }
 .card-owner-badge{
   position:absolute; top:12px; left:12px; z-index:3; width:28px; height:28px; border-radius:50%;
   background:rgba(255,255,255,.95); color:var(--navy); display:flex; align-items:center; justify-content:center;
-  font-size:.78rem; box-shadow:0 4px 10px rgba(0,0,0,.18);
+  font-size:.78rem; box-shadow:0 2px 8px rgba(0,0,0,.14);
 }
 
 /* ---------- CATEGORY OVERVIEW ---------- */
@@ -287,7 +294,7 @@ button{ font-family:inherit; }
   min-height:104px; display:flex; flex-direction:column; justify-content:space-between;
   box-shadow:var(--shadow-card); transition:transform .2s cubic-bezier(.25,1,.5,1), box-shadow .2s ease;
 }
-.category-tile:hover{ transform:translateY(-4px) scale(1.02); box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12); }
+.category-tile:hover{ transform:translateY(-2px); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1); }
 .category-tile .tile-icon{ font-size:1.3rem; opacity:.9; }
 .category-tile .tile-name{ font-family:var(--font-display); font-weight:700; font-size:.92rem; line-height:1.3; }
 .category-tile .tile-count{ font-size:.72rem; opacity:.85; margin-top:2px; }
@@ -305,23 +312,23 @@ button{ font-family:inherit; }
 @media (min-width: 820px) { .report-grid .report-card.is-landscape { grid-column: span 2; } }
 
 /* ---------- BUTTONS ---------- */
-.btn{ transition:transform .15s ease, box-shadow .15s ease, background .2s ease, border-color .2s ease; border-radius:12px; font-weight:600; }
-.btn:active{ transform:scale(.97); }
-.btn-primary{ background:linear-gradient(135deg, var(--navy), var(--navy-soft)); border:none; box-shadow:0 4px 12px rgba(30,64,175,.28); color: #fff; }
-.btn-primary:hover, .btn-primary:focus{ background:linear-gradient(135deg, var(--navy-deep), var(--navy)); box-shadow:0 6px 18px rgba(30,64,175,.38); transform:translateY(-1px); color: #fff; }
+.btn{ transition:transform .15s ease, background .15s ease, border-color .15s ease; border-radius:var(--radius-sm); font-weight:400; }
+.btn:active{ transform:scale(.95); }
+.btn-primary{ background:var(--navy); border:none; color: #fff; }
+.btn-primary:hover, .btn-primary:focus{ background:var(--navy-deep); color: #fff; }
 .btn-outline-secondary{ border-color:var(--line); color:var(--text-muted); }
 .btn-outline-secondary:hover{ background:var(--paper); border-color:var(--text-muted); color:var(--text); }
-.btn-danger{ background:var(--danger); border-color:var(--danger); box-shadow:0 4px 12px rgba(205,0,0,.3); color: #fff; }
-.btn-danger:hover{ background:#A60000; border-color:#A60000; color: #fff; transform:translateY(-1px); }
-.form-control:focus, .form-select:focus{ border-color:var(--navy-soft); box-shadow:0 0 0 .2rem rgba(30,64,175,.14); }
-.form-control, .form-select{ border-color:var(--line); border-radius:10px; transition:border-color .15s ease, box-shadow .15s ease; }
+.btn-danger{ background:var(--danger); border-color:var(--danger); color: #fff; }
+.btn-danger:hover{ background:#D70015; border-color:#D70015; color: #fff; }
+.form-control:focus, .form-select:focus{ border-color:var(--navy); box-shadow:0 0 0 .2rem rgba(0,102,204,.14); }
+.form-control, .form-select{ border-color:var(--line); border-radius:var(--radius-sm); transition:border-color .15s ease, box-shadow .15s ease; }
 
 /* ---------- MODALS ---------- */
 .gsi-wrap{ display:flex; justify-content:center; padding:10px 0; }
 .form-label{ font-weight:600; font-size:.85rem; color:var(--text); }
 .is-invalid{ border-color:var(--danger) !important; animation:shakeInvalid .35s ease; }
 @keyframes shakeInvalid{ 0%,100%{ transform:translateX(0); } 25%{ transform:translateX(-4px); } 75%{ transform:translateX(4px); } }
-.modal-content{ border-radius:24px; border:none; box-shadow: 0 24px 48px rgba(0,0,0,.15); }
+.modal-content{ border-radius:var(--radius); border:none; box-shadow: 0 8px 30px rgba(0,0,0,.12); }
 .modal-title{ font-family:var(--font-display); font-weight:700; color:var(--text); }
 
 /* ---------- DETAIL VIEW (executive presentation) ---------- */
@@ -329,19 +336,14 @@ button{ font-family:inherit; }
 #detailModal .modal-body, #detailModal .modal-footer{ padding:0; border:none; }
 .detail-hero{
   position:relative; padding:34px 28px 26px; color:#fff; overflow:hidden;
-  background: radial-gradient(120% 140% at 100% 0%, var(--navy-soft) 0%, var(--navy) 46%, var(--navy-deep) 100%);
+  background: #272729;
 }
-.detail-hero::before{
-  content:""; position:absolute; inset:0; opacity:.12; pointer-events:none;
-  background-image: repeating-linear-gradient(135deg, #fff 0 1px, transparent 1px 26px);
-}
-.detail-hero::after{ content:""; position:absolute; left:28px; right:28px; bottom:0; height:3px; background:linear-gradient(90deg, var(--gold-light), transparent 85%); }
 .detail-hero-icon{
   width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center;
-  background:rgba(255,255,255,.12); border:1px solid rgba(59,91,219,.55); color:var(--gold-light);
+  background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.14); color:var(--navy-on-dark);
   font-size:1.35rem; margin-bottom:16px; position:relative; z-index:1;
 }
-.detail-eyebrow{ font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--gold-light); font-weight:700; margin-bottom:8px; position:relative; z-index:1; }
+.detail-eyebrow{ font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--navy-on-dark); font-weight:700; margin-bottom:8px; position:relative; z-index:1; }
 .detail-hero-title{ font-family:var(--font-display); font-size:1.28rem; font-weight:700; line-height:1.4; margin:0 0 16px; position:relative; z-index:1; }
 .detail-badges{ display:flex; flex-wrap:wrap; gap:8px; position:relative; z-index:1; }
 .detail-badge{
@@ -356,35 +358,35 @@ button{ font-family:inherit; }
 }
 .detail-reporter-avatar{
   width:44px; height:44px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-  background:linear-gradient(135deg, var(--navy), var(--navy-soft)); color:#fff; font-size:1.1rem;
-  box-shadow:0 4px 12px rgba(30,64,175,.28);
+  background:var(--navy); color:#fff; font-size:1.1rem;
 }
 .detail-reporter-name{ font-family:var(--font-display); font-weight:700; font-size:1rem; color:var(--text); margin-top:1px; }
 .detail-meta-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px 14px; margin-bottom:6px; }
 .detail-meta-item{ display:flex; gap:11px; align-items:flex-start; }
 .detail-meta-icon{
   width:36px; height:36px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center;
-  background:var(--paper); color:var(--navy-soft); font-size:.9rem; border:1px solid var(--line);
+  background:var(--paper); color:var(--navy); font-size:.9rem; border:1px solid var(--line);
 }
 .detail-meta-label{ font-size:.7rem; color:var(--text-muted); font-weight:600; letter-spacing:.02em; margin-bottom:1px; }
 .detail-meta-value{ font-size:.88rem; color:var(--text); font-weight:600; line-height:1.35; }
 .detail-cta-wrap{ padding:18px 26px 26px; }
 .detail-cta{
-  display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:14px; border-radius:14px;
-  background:linear-gradient(135deg, var(--gold-light), var(--gold)); color:#fff; font-weight:700; font-size:.95rem;
-  box-shadow:0 10px 24px rgba(30,64,175,.32); border:none; transition:transform .15s ease, box-shadow .15s ease;
+  display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:14px; border-radius:var(--rounded-pill, 9999px);
+  background:var(--navy); color:#fff; font-weight:600; font-size:.95rem;
+  border:none; transition:transform .15s ease, background .15s ease;
 }
-.detail-cta:hover{ transform:translateY(-2px); box-shadow:0 14px 28px rgba(30,64,175,.4); color:#fff; }
+.detail-cta:hover{ background:var(--navy-deep); color:#fff; }
+.detail-cta:active{ transform:scale(.97); }
 .detail-footer-actions{ display:flex; gap:10px; padding:0 26px 22px; }
 .detail-footer-actions .btn{ flex:1; }
 @media(max-width:420px){ .detail-meta-grid{ grid-template-columns:1fr; } }
 
 /* ---------- UPLOAD FORM (sectioned, executive styling) ---------- */
 #reportFormModal .modal-header{
-  background:linear-gradient(135deg, var(--navy), var(--navy-soft)); border:none; padding:20px 26px;
+  background:var(--navy); border:none; padding:20px 26px;
 }
 #reportFormModal .modal-title{ color:#fff; display:flex; align-items:center; gap:10px; }
-#reportFormModal .modal-title i{ color:var(--gold-light); }
+#reportFormModal .modal-title i{ color:var(--navy-on-dark); }
 #reportFormModal .btn-close{ filter:invert(1) brightness(2); opacity:.85; }
 #reportFormModal .modal-body{ padding:24px 26px 8px; background:var(--paper); }
 .form-section{ background:var(--paper-card); border:1px solid var(--line); border-radius:16px; padding:18px 18px 6px; margin-bottom:16px; }
@@ -461,7 +463,7 @@ button{ font-family:inherit; }
 @keyframes flyoutIn{ from{ opacity:0; transform:translate(-50%,8px); } to{ opacity:1; transform:translate(-50%,0); } }
 .dock-flyout .flyout-title{ font-family:var(--font-display); font-size:.78rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:.05em; padding:4px 8px 8px; display:flex; align-items:center; justify-content:space-between; gap:8px; }
 .dock-flyout .flyout-title .flyout-all{ text-transform:none; letter-spacing:0; font-size:.74rem; color:var(--navy-soft); font-weight:700; cursor:pointer; }
-.dock-flyout a{ display:flex; align-items:center; gap:9px; padding:10px 12px; color:var(--text); text-decoration:none; font-size:.88rem; border-radius:12px; font-weight: 500; }
+.dock-flyout a{ display:flex; align-items:center; gap:9px; padding:10px 12px; color:var(--text); text-decoration:none; font-size:.88rem; border-radius:12px; font-weight: 600; }
 .dock-flyout a::before{ content:""; width:8px; height:8px; border-radius:50%; background:var(--item-color,var(--navy-soft)); flex-shrink:0; }
 .dock-flyout a:hover{ background: rgba(0, 0, 0, 0.05); }
 @media(min-width:992px){ .dock-flyout{ bottom:100px; } }
@@ -470,7 +472,7 @@ button{ font-family:inherit; }
 .fab-wrap{ position:fixed; right:18px; bottom:calc(96px + env(safe-area-inset-bottom)); z-index:1050; }
 .fab-btn{
   width:58px; height:58px; border-radius:50%; border:none; cursor:pointer;
-  background: linear-gradient(135deg, var(--navy), var(--navy-soft)); color:#fff; font-size:1.3rem; box-shadow:0 10px 24px rgba(30,64,175,.4), 0 0 0 3px rgba(59,91,219,.35);
+  background: var(--navy); color:#fff; font-size:1.3rem; box-shadow:0 4px 14px rgba(0,0,0,.18);
   display:flex; align-items:center; justify-content:center;
   transition:transform .28s cubic-bezier(.34,1.56,.64,1), background .2s ease;
 }
@@ -697,10 +699,10 @@ const SUBJECT_COLORS = [
   "#3949ab", "#303f9f", "#283593", "#1a237e"
 ];
 
-// สีสำหรับประเภทงาน (โทนสีม่วง 8 ระดับ)
+// สีสำหรับประเภทงานตามลำดับที่คุณระบุ
 const TYPE_COLORS = [
-  "#b39ddb", "#9575cd", "#7e57c2", "#673ab7", 
-  "#5e35b1", "#512da8", "#4527a0", "#311b92"
+  "#e51c23", "#616161", "#e51c23", "#616161",
+  "#e51c23", "#616161", "#e51c23", "#616161", "#e51c23"
 ];
 
 const TYPE_COLOR_MAP = Object.fromEntries(REPORT_TYPES.map((t, i) => [t, TYPE_COLORS[i % TYPE_COLORS.length]]));
@@ -977,7 +979,7 @@ function reportCardHtml(r, idx) {
     <div class="report-card reveal" style="animation-delay:${delay}s; --accent:${groupColor(r)};" onclick="openDetail('${escAttr(id)}')" data-report-id="${escAttr(id)}" data-file-url="${escAttr(fileUrl)}">
       <div class="card-cover">
         <div class="cover-frame"><i class="fa-solid fa-file-pdf cover-placeholder is-loading"></i></div>
-        <span class="card-type-badge" style="background:${groupColor(r)}" title="รหัสรายงาน: ${escAttr(id)}">${escapeHtml(id || "-")}</span>
+        <span class="card-type-badge card-id-badge" style="background:${groupColor(r)}" title="รหัสรายงาน: ${escAttr(id)}">${escapeHtml(id || "-")}</span>
         ${isMine ? `<span class="card-owner-badge" title="รายงานของฉัน"><i class="fa-solid fa-user-check"></i></span>` : ""}
         <div class="cover-title-overlay">${escapeHtml(title)}</div>
       </div>
@@ -1164,7 +1166,7 @@ function initGoogleSignIn() {
         updateAuthUI();
         refreshCurrentView(); // ⚠️ NEW: อัปเดตป้ายเจ้าของ/ปุ่มแก้ไข-ลบทันทีหลังล็อกอิน โดยไม่ต้องรีเฟรชหน้า
         Swal.fire({ icon: "success", title: "เข้าสู่ระบบสำเร็จ", showConfirmButton: false, timer: 1200 });
-      } catch (err) { Swal.fire({ icon: "error", title: "เข้าสู่ระบบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
+      } catch (err) { Swal.fire({ icon: "error", title: "เข้าสู่ระบบไม่สำเร็จ", text: err.message, confirmButtonColor: "#0066CC" }); }
     }
   });
 }
@@ -1284,17 +1286,17 @@ async function saveReport() {
   document.getElementById("reportType").value = reportType;
   const missing = ["reportFullName","reportTitle","reportYear","reportDate","reportSubject","reportType"].filter(id => !document.getElementById(id).value.trim());
   if (!editId && !file) missing.push("reportFile");
-  if (missing.length) { missing.forEach(id => document.getElementById(id).classList.add("is-invalid")); return Swal.fire({ icon: "warning", title: "ข้อมูลไม่ครบ", text: "กรุณากรอกข้อมูลให้ครบ", confirmButtonColor: "#1C86EE" }); }
+  if (missing.length) { missing.forEach(id => document.getElementById(id).classList.add("is-invalid")); return Swal.fire({ icon: "warning", title: "ข้อมูลไม่ครบ", text: "กรุณากรอกข้อมูลให้ครบ", confirmButtonColor: "#0066CC" }); }
 
   // ⚠️ NEW: ตรวจประเภทไฟล์จริง (ไม่พึ่ง accept="application/pdf" ที่ bypass ได้) และขนาดไฟล์ ก่อนเริ่ม encode/upload
   if (file) {
     if (file.type !== "application/pdf") {
       document.getElementById("reportFile").classList.add("is-invalid");
-      return Swal.fire({ icon: "warning", title: "ไฟล์ไม่ถูกต้อง", text: "รองรับเฉพาะไฟล์ PDF เท่านั้น", confirmButtonColor: "#1C86EE" });
+      return Swal.fire({ icon: "warning", title: "ไฟล์ไม่ถูกต้อง", text: "รองรับเฉพาะไฟล์ PDF เท่านั้น", confirmButtonColor: "#0066CC" });
     }
     if (file.size > MAX_FILE_SIZE_BYTES) {
       document.getElementById("reportFile").classList.add("is-invalid");
-      return Swal.fire({ icon: "warning", title: "ไฟล์ใหญ่เกินไป", text: "ขนาดไฟล์ต้องไม่เกิน 50MB (ไฟล์นี้ " + (file.size/1024/1024).toFixed(1) + " MB)", confirmButtonColor: "#1C86EE" });
+      return Swal.fire({ icon: "warning", title: "ไฟล์ใหญ่เกินไป", text: "ขนาดไฟล์ต้องไม่เกิน 50MB (ไฟล์นี้ " + (file.size/1024/1024).toFixed(1) + " MB)", confirmButtonColor: "#0066CC" });
     }
   }
 
@@ -1316,18 +1318,18 @@ async function saveReport() {
     await callGas({ action: editId?"update":"create", token: userSession.token, id: editId||undefined, fullName, title, year, eventDate, subjectGroup, reportType, uploadId, totalChunks, fileMimeType: file?.type });
     bootstrap.Modal.getInstance(document.getElementById("reportFormModal"))?.hide(); await Swal.fire({ icon: "success", title: "สำเร็จ", showConfirmButton: false, timer: 1300 });
     await loadReports(); refreshCurrentView();
-  } catch (err) { Swal.fire({ icon: "error", title: "ผิดพลาด", text: err.message, confirmButtonColor: "#1C86EE" }); }
+  } catch (err) { Swal.fire({ icon: "error", title: "ผิดพลาด", text: err.message, confirmButtonColor: "#0066CC" }); }
   finally { btn.disabled = false; btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> บันทึก`; }
 }
 
-function confirmDelete(id) { Swal.fire({ icon: "warning", title: "ยืนยันการลบ", showCancelButton: true, confirmButtonColor: "#CD0000" }).then(res => { if(res.isConfirmed) deleteReport(id); }); }
+function confirmDelete(id) { Swal.fire({ icon: "warning", title: "ยืนยันการลบ", showCancelButton: true, confirmButtonColor: "#FF3B30" }).then(res => { if(res.isConfirmed) deleteReport(id); }); }
 async function deleteReport(id) {
   bootstrap.Modal.getInstance(document.getElementById("detailModal"))?.hide(); Swal.fire({ title: "กำลังลบ", didOpen: () => Swal.showLoading() });
   // ⚠️ FIX: เดิมไม่เช็คผลลัพธ์จาก fetch เลย ถ้า backend ปฏิเสธ (เช่นไม่มีสิทธิ์ หรือ session หมดอายุ)
   // ระบบจะขึ้น "ลบสำเร็จ" หลอกผู้ใช้ทั้งที่จริงไม่ได้ลบ
   try { await callGas({ action: "delete", token: userSession.token, id });
     await Swal.fire({ icon: "success", title: "ลบสำเร็จ", showConfirmButton: false, timer: 1300 }); await loadReports(); refreshCurrentView();
-  } catch (err) { Swal.fire({ icon: "error", title: "ลบไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
+  } catch (err) { Swal.fire({ icon: "error", title: "ลบไม่สำเร็จ", text: err.message, confirmButtonColor: "#0066CC" }); }
 }
 
 async function openAdminModal() { new bootstrap.Modal(document.getElementById("adminModal")).show(); await refreshAdminList(); }
@@ -1346,11 +1348,11 @@ async function addAdmin() {
   try {
     await callGas({ action: "addAdmin", token: userSession.token, email: document.getElementById("newAdminEmail").value, displayName: document.getElementById("newAdminName").value });
     document.getElementById("newAdminEmail").value=""; document.getElementById("newAdminName").value=""; await refreshAdminList();
-  } catch (err) { Swal.fire({ icon: "error", title: "เพิ่มแอดมินไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
+  } catch (err) { Swal.fire({ icon: "error", title: "เพิ่มแอดมินไม่สำเร็จ", text: err.message, confirmButtonColor: "#0066CC" }); }
 }
 async function removeAdmin(email) {
   try { await callGas({ action: "deleteAdmin", token: userSession.token, email }); await refreshAdminList(); }
-  catch (err) { Swal.fire({ icon: "error", title: "ลบแอดมินไม่สำเร็จ", text: err.message, confirmButtonColor: "#1C86EE" }); }
+  catch (err) { Swal.fire({ icon: "error", title: "ลบแอดมินไม่สำเร็จ", text: err.message, confirmButtonColor: "#0066CC" }); }
 }
 
 function previewPDFName() {
